@@ -1,0 +1,263 @@
+.ventas-admin-page {
+  color: #0f172a;
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+
+.ventas-admin-header {
+  align-items: flex-end;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.ventas-admin-header span {
+  color: #2563eb;
+  display: block;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: .08em;
+}
+
+.ventas-admin-header h1 {
+  font-size: 34px;
+  margin: 6px 0 4px;
+}
+
+.ventas-admin-header p,
+.ventas-admin-card-head p {
+  color: #64748b;
+  font-weight: 800;
+  margin: 0;
+}
+
+.ventas-admin-filtro {
+  align-items: end;
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+}
+
+.ventas-admin-filtro label {
+  display: grid;
+  gap: 6px;
+}
+
+.ventas-admin-filtro span {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.ventas-admin-filtro input {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-weight: 850;
+  min-height: 42px;
+  padding: 8px 11px;
+}
+
+.ventas-admin-filtro button,
+.ventas-admin-tabla button {
+  background: #2563eb;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 950;
+  min-height: 42px;
+  padding: 0 16px;
+}
+
+.ventas-admin-resumen {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.ventas-admin-resumen article,
+.ventas-admin-card {
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  box-shadow: 0 16px 35px rgba(15, 23, 42, .08);
+}
+
+.ventas-admin-resumen article {
+  padding: 16px;
+}
+
+.ventas-admin-resumen span {
+  color: #64748b;
+  display: block;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.ventas-admin-resumen strong {
+  color: #0f172a;
+  display: block;
+  font-size: 24px;
+  margin-top: 8px;
+}
+
+.ventas-admin-card {
+  overflow: hidden;
+}
+
+.ventas-admin-card-head {
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.ventas-admin-card-head h2 {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+
+.ventas-admin-export {
+  display: flex;
+  gap: 10px;
+}
+
+.ventas-admin-export button {
+  background: #0f172a;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 950;
+  min-height: 40px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.ventas-admin-export button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.ventas-admin-tabla-wrap {
+  overflow: auto;
+}
+
+.ventas-admin-tabla {
+  border-collapse: collapse;
+  min-width: 1380px;
+  width: 100%;
+}
+
+.ventas-admin-tabla th {
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 950;
+  padding: 13px 12px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.ventas-admin-tabla td {
+  border-top: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 750;
+  padding: 13px 12px;
+  vertical-align: top;
+}
+
+.ventas-admin-productos {
+  max-width: 320px;
+  white-space: normal;
+}
+
+.ventas-admin-detalle-row td {
+  background: #f8fafc;
+}
+
+.ventas-admin-detalle {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ventas-admin-detalle article {
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.ventas-admin-detalle strong,
+.ventas-admin-detalle span,
+.ventas-admin-detalle small {
+  display: block;
+}
+
+.ventas-admin-detalle span,
+.ventas-admin-detalle small {
+  color: #64748b;
+  font-weight: 800;
+}
+
+.ventas-admin-error,
+.ventas-admin-vacio {
+  border-radius: 12px;
+  font-weight: 900;
+  margin: 18px;
+  padding: 14px;
+}
+
+.ventas-admin-error {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.ventas-admin-vacio {
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .ventas-admin-resumen {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ventas-admin-detalle {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ventas-admin-header,
+  .ventas-admin-filtro,
+  .ventas-admin-card-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ventas-admin-export {
+    flex-direction: column;
+  }
+
+  .ventas-admin-resumen,
+  .ventas-admin-detalle {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,2 @@
+ALTER TABLE ventas
+ADD COLUMN IF NOT EXISTS saldo_favor_usado NUMERIC(12,2) DEFAULT 0;

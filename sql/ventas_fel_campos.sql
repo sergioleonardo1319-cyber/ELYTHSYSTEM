@@ -1,0 +1,17 @@
+ALTER TABLE ventas
+ADD COLUMN IF NOT EXISTS fel_estado VARCHAR(30) DEFAULT 'pendiente';
+
+ALTER TABLE ventas
+ADD COLUMN IF NOT EXISTS fel_numero_autorizacion VARCHAR(80);
+
+ALTER TABLE ventas
+ADD COLUMN IF NOT EXISTS fel_serie VARCHAR(30);
+
+ALTER TABLE ventas
+ADD COLUMN IF NOT EXISTS fel_numero VARCHAR(40);
+
+ALTER TABLE ventas
+ADD COLUMN IF NOT EXISTS fel_fecha_certificacion TIMESTAMP;
+
+ALTER TABLE ventas
+ADD COLUMN IF NOT EXISTS fel_nit_certificador VARCHAR(30);

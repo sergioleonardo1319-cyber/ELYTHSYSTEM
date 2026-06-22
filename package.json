@@ -1,0 +1,25 @@
+{
+  "name": "cafeteria-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:sandbox": "set APP_ENV=sandbox&& node server.js",
+    "backup": "node scripts\\backup-database.js",
+    "backup:sandbox": "node scripts\\backup-database.js --env sandbox",
+    "sandbox:refresh": "node scripts\\refresh-sandbox.js --force",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pdfkit": "^0.18.0",
+    "pg": "^8.20.0"
+  }
+}

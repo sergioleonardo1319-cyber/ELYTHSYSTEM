@@ -1,0 +1,44 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:sandbox": "vite --mode sandbox",
+    "build": "vite build",
+    "build:sandbox": "vite build --mode sandbox",
+    "build:production": "vite build --mode production",
+    "prepare:apk:sandbox": "vite build --mode sandbox",
+    "prepare:apk:production": "vite build --mode production",
+    "android:add": "cap add android",
+    "android:sync:production": "scripts\\sync-android-production.cmd",
+    "android:sync:sandbox": "scripts\\sync-android-sandbox.cmd",
+    "android:open": "cap open android",
+    "apk:debug:production": "scripts\\build-apk-production.cmd",
+    "apk:debug:sandbox": "scripts\\build-apk-sandbox.cmd",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "pdfkit": "^0.18.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "vite": "^8.0.12"
+  }
+}

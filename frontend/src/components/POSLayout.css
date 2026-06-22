@@ -1,0 +1,9 @@
+.pos-layout {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr) 292px;
+  align-items: stretch;
+  gap: 12px;
+  min-height: calc(100vh - 190px);
+  width: 100%;
+  overflow-x: hidden;
+}

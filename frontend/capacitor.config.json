@@ -1,0 +1,9 @@
+{
+  "appId": "com.cafeteria.pos",
+  "appName": "Cafeteria POS",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,549 @@
+.cobro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, .62);
+  backdrop-filter: blur(4px);
+  padding: 8px;
+}
+
+.cobro-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(1080px, 100%);
+  max-height: calc(100dvh - 16px);
+  overflow: hidden;
+  border-radius: 16px;
+  background: white;
+  color: #0f172a;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .36);
+  padding: 12px;
+}
+
+.cobro-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e2e8f0;
+  flex: 0 0 auto;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+}
+
+.cobro-header span {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.cobro-header h2 {
+  color: #0f172a;
+  font-size: 21px;
+  font-weight: 950;
+  letter-spacing: .04em;
+  line-height: 1.1;
+  margin: 2px 0 0;
+  text-transform: uppercase;
+}
+
+.cobro-contenido {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+  display: grid;
+  grid-template-columns: minmax(0, .98fr) minmax(0, 1.02fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.cobro-seccion {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 9px;
+}
+
+.cobro-seccion h3 {
+  color: #0f172a;
+  font-size: 15px;
+  margin: 0 0 6px;
+}
+
+.cobro-bloque {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  padding: 9px;
+}
+
+.cobro-bloque:last-child {
+  margin-bottom: 0;
+}
+
+.cobro-bloque-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.cobro-bloque-header h3 {
+  margin: 0;
+}
+
+.cobro-bloque-header button {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 950;
+  min-height: 28px;
+  padding: 0 10px;
+}
+
+.cobro-resumen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.cobro-resumen div {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+  padding: 6px 8px;
+}
+
+.cobro-resumen span,
+.cobro-field span,
+.cobro-cambio span {
+  display: block;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 950;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.cobro-resumen b {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.cobro-descuento-compacto,
+.cobro-pago-linea {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.cobro-field {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.cobro-descuento-compacto .cobro-field,
+.cobro-pago-linea .cobro-field {
+  margin-bottom: 0;
+}
+
+.cobro-field input,
+.cobro-field select,
+.cobro-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 30px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: white;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  padding: 5px 9px;
+}
+
+.cobro-field input:focus,
+.cobro-field select:focus,
+.cobro-field textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+.cobro-field textarea {
+  height: 38px;
+  min-height: 38px;
+  resize: none;
+}
+
+.cobro-nit-linea {
+  align-items: end;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) 72px 48px;
+  margin-bottom: 6px;
+}
+
+.cobro-nit-linea .cobro-field {
+  margin-bottom: 0;
+}
+
+.cobro-mini-btn {
+  border: 0;
+  border-radius: 9px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 950;
+  min-height: 30px;
+  padding: 0 8px;
+}
+
+.cobro-mini-btn.secundario {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.cobro-metodos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin: 6px 0;
+}
+
+.cobro-metodos button {
+  min-height: 32px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #f8fafc;
+  color: #334155;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.cobro-metodos button.activo {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: white;
+}
+
+.cobro-cambio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  background: #f0fdf4;
+  padding: 7px 9px;
+}
+
+.cobro-tarjeta-linea {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.cobro-cliente-resumen,
+.cobro-busqueda-vacia,
+.cobro-busqueda-ayuda,
+.cobro-credito-info {
+  border-radius: 11px;
+  margin-bottom: 6px;
+  padding: 7px 9px;
+}
+
+.cobro-clientes-resultados {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 6px;
+  max-height: 145px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.cobro-clientes-resultados button {
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 9px;
+  color: #0f172a;
+  cursor: pointer;
+  display: grid;
+  gap: 1px 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 36px;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.cobro-clientes-resultados button.activo {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.cobro-clientes-resultados strong,
+.cobro-clientes-resultados span,
+.cobro-clientes-resultados small {
+  display: block;
+}
+
+.cobro-clientes-resultados strong {
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 950;
+  grid-row: span 2;
+  white-space: nowrap;
+}
+
+.cobro-clientes-resultados span {
+  font-size: 12px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cobro-clientes-resultados small {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  grid-column: 2;
+}
+
+.cobro-busqueda-vacia {
+  background: #fff7ed;
+  border: 1px dashed #fdba74;
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.cobro-busqueda-ayuda {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.cobro-cliente-resumen {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #dbe3ef;
+  display: grid;
+  gap: 3px 9px;
+  grid-template-columns: auto minmax(0, 1fr);
+  margin-bottom: 0;
+}
+
+.cobro-cliente-resumen strong,
+.cobro-cliente-resumen span,
+.cobro-cliente-resumen small,
+.cobro-credito-info strong,
+.cobro-credito-info span {
+  display: block;
+}
+
+.cobro-cliente-resumen strong {
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 950;
+  grid-row: span 2;
+  white-space: nowrap;
+}
+
+.cobro-cliente-resumen span {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 900;
+  margin-top: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cobro-cliente-resumen small {
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  margin-top: 0;
+}
+
+.cobro-credito-info {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.cobro-comanda-box {
+  background: #f8fdff;
+  border-color: #bae6fd;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.cobro-comanda-box h3 {
+  color: #075985;
+  font-size: 15px;
+  font-weight: 950;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.cobro-comanda-box .cobro-field {
+  margin-bottom: 0;
+}
+
+.cobro-credito-info strong {
+  color: #c2410c;
+  font-size: 13px;
+  font-weight: 950;
+  margin-bottom: 4px;
+}
+
+.cobro-credito-info span {
+  color: #7c2d12;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.cobro-cambio span {
+  margin-bottom: 0;
+}
+
+.cobro-cambio strong {
+  color: #047857;
+  font-size: 17px;
+}
+
+.cobro-cambio strong.negativo {
+  color: #dc2626;
+}
+
+.cobro-actions {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cobro-btn-secondary,
+.cobro-btn-primary {
+  min-height: 38px;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 950;
+  padding: 0 16px;
+}
+
+.cobro-btn-secondary {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.cobro-btn-primary {
+  background: #16a34a;
+  color: white;
+  box-shadow: 0 10px 18px rgba(22, 163, 74, .22);
+}
+
+.cobro-alerta-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, .62);
+  backdrop-filter: blur(5px);
+  padding: 18px;
+}
+
+.cobro-alerta {
+  width: min(380px, 100%);
+  border-radius: 16px;
+  background: #0f172a;
+  color: white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+  padding: 28px;
+  text-align: center;
+}
+
+.cobro-alerta-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 950;
+  margin-bottom: 12px;
+}
+
+.cobro-alerta h3 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+
+.cobro-alerta p {
+  color: #cbd5e1;
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 0 0 20px;
+}
+
+.cobro-alerta button {
+  min-height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 950;
+  padding: 0 22px;
+}
+
+@media (max-width: 640px) {
+  .cobro-contenido,
+  .cobro-resumen,
+  .cobro-descuento-compacto,
+  .cobro-pago-linea,
+  .cobro-tarjeta-linea,
+  .cobro-metodos {
+    grid-template-columns: 1fr;
+  }
+
+  .cobro-header,
+  .cobro-actions {
+    flex-direction: column;
+  }
+
+  .cobro-btn-secondary,
+  .cobro-btn-primary {
+    width: 100%;
+  }
+}

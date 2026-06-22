@@ -1,0 +1,170 @@
+.compras-container {
+  min-height: 100vh;
+  padding: 28px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.compras-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.compras-header h1 {
+  margin: 0;
+  font-size: 34px;
+}
+
+.compras-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.compras-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.08);
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+.btn-ver-detalle-compra {
+  border: none;
+  border-radius: 10px;
+  background: #0f172a;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+.btn-ver-detalle-compra:hover {
+  background: #1e293b;
+}
+
+.btn-nuevo-proveedor {
+  border: none;
+  border-radius: 10px;
+  background: #16a34a;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 11px 16px;
+  white-space: nowrap;
+}
+
+.btn-nuevo-proveedor:hover {
+  background: #15803d;
+}
+
+.btn-proveedor-secundario {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: white;
+  color: #0f172a;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.btn-proveedor-secundario:hover {
+  background: #f8fafc;
+}
+
+.proveedor-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.proveedor-modal {
+  width: min(560px, 100%);
+}
+
+.proveedor-resumen {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.proveedor-resumen div {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 13px;
+}
+
+.proveedor-resumen span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.proveedor-resumen strong {
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.compra-detalle-modal {
+  width: min(980px, 100%);
+}
+
+.compra-detalle-resumen {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.compra-detalle-resumen div {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 13px;
+}
+
+.compra-detalle-resumen span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.compra-detalle-resumen strong {
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+@media (max-width: 720px) {
+  .compras-container {
+    padding: 18px;
+  }
+
+  .compra-detalle-resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .proveedor-resumen {
+    grid-template-columns: 1fr;
+  }
+}

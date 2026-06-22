@@ -1,0 +1,17 @@
+node_modules
+frontend/node_modules
+frontend/dist
+.postgres-runtime
+
+*.log
+logs
+backups
+
+.env
+.env.development
+.env.production
+.env.sandbox
+frontend/.env
+frontend/.env.development
+frontend/.env.production
+frontend/.env.sandbox

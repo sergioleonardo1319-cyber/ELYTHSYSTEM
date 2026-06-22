@@ -1,0 +1,29 @@
+CREATE TABLE IF NOT EXISTS complemento_grupos (
+  id SERIAL PRIMARY KEY,
+  producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+  empresa_id INTEGER NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+  nombre VARCHAR(120) NOT NULL,
+  obligatorio BOOLEAN DEFAULT TRUE,
+  seleccion_multiple BOOLEAN DEFAULT FALSE,
+  minimo INTEGER DEFAULT 1,
+  maximo INTEGER DEFAULT 1,
+  orden INTEGER DEFAULT 0,
+  activo BOOLEAN DEFAULT TRUE,
+  fecha TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS complemento_opciones (
+  id SERIAL PRIMARY KEY,
+  grupo_id INTEGER NOT NULL REFERENCES complemento_grupos(id) ON DELETE CASCADE,
+  nombre VARCHAR(120) NOT NULL,
+  precio_extra NUMERIC(10,2) DEFAULT 0,
+  activo BOOLEAN DEFAULT TRUE,
+  orden INTEGER DEFAULT 0,
+  fecha TIMESTAMP DEFAULT NOW()
+);
+
+ALTER TABLE detalle_ventas
+ADD COLUMN IF NOT EXISTS complementos JSONB DEFAULT '[]'::jsonb;
+
+ALTER TABLE complemento_grupos
+ADD COLUMN IF NOT EXISTS parent_opcion_id INTEGER REFERENCES complemento_opciones(id) ON DELETE CASCADE;

@@ -1,0 +1,76 @@
+.aviso-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, .62);
+  backdrop-filter: blur(5px);
+  padding: 18px;
+}
+
+.aviso-modal {
+  width: min(390px, 100%);
+  border-radius: 16px;
+  background: #0f172a;
+  color: white;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .48);
+  padding: 26px;
+  text-align: center;
+}
+
+.aviso-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  font-size: 28px;
+  font-weight: 950;
+  margin-bottom: 12px;
+}
+
+.aviso-exito .aviso-icono {
+  background: #16a34a;
+}
+
+.aviso-error .aviso-icono {
+  background: #dc2626;
+}
+
+.aviso-modal h2 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+
+.aviso-modal p {
+  color: #cbd5e1;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0 0 20px;
+}
+
+.aviso-modal button {
+  min-height: 42px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 950;
+  padding: 0 22px;
+}
+
+.aviso-exito button {
+  background: #16a34a;
+}
+
+.aviso-error button {
+  background: #dc2626;
+}
