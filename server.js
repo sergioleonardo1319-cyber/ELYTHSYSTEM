@@ -115,7 +115,6 @@ const inicializarDepartamentos = async () => {
         SELECT 1
         FROM departamentos d
         WHERE d.empresa_id = e.id
-        AND LOWER(d.nombre) = 'cocina'
       )
     `);
   } catch (error) {
@@ -129,8 +128,12 @@ const asegurarDepartamentoBase = async (empresaId) => {
   await db.query(
     `
     INSERT INTO departamentos (nombre, empresa_id)
-    VALUES ('COCINA', $1)
-    ON CONFLICT (nombre, empresa_id) DO NOTHING
+    SELECT 'COCINA', $1
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM departamentos
+      WHERE empresa_id = $1
+    )
     `,
     [empresaId]
   );
