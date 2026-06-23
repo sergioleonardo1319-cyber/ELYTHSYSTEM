@@ -2430,11 +2430,11 @@ app.post(
       INSERT INTO empresas
       (
         nombre,
-        nit || "",
-        razon_social || "",
-        direccion || "",
-        codigo_establecimiento || "",
-        afiliacion_iva || "GEN",
+        nit,
+        razon_social,
+        direccion,
+        codigo_establecimiento,
+        afiliacion_iva,
         correo,
         imprimir_factura_auto,
         imprimir_comanda_auto
@@ -2443,12 +2443,12 @@ app.post(
       RETURNING *
       `,
       [
-        nombre,
-        nit,
-        razon_social,
-        direccion,
-        codigo_establecimiento,
-        afiliacion_iva,
+        String(nombre || "").trim(),
+        String(nit || "").trim(),
+        String(razon_social || "").trim(),
+        String(direccion || "").trim(),
+        String(codigo_establecimiento || "").trim(),
+        String(afiliacion_iva || "GEN").trim(),
         correo || "",
         imprimir_factura_auto === true,
         imprimir_comanda_auto === true,
