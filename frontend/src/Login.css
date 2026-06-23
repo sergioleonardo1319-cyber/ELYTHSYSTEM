@@ -1,10 +1,14 @@
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  box-sizing: border-box;
   display: grid;
   place-items: center;
   position: relative;
   overflow: hidden;
-  padding: clamp(10px, 1.6vw, 20px);
+  padding: clamp(8px, 1.2vw, 14px);
   background:
     radial-gradient(circle at 27% 38%, rgba(212, 175, 55, 0.18), transparent 18%),
     radial-gradient(circle at 72% 18%, rgba(30, 64, 175, 0.18), transparent 32%),
@@ -60,12 +64,14 @@
 }
 
 .login-shell {
-  width: min(1410px, 100%);
-  min-height: min(90vh, 860px);
-  max-height: calc(100vh - 20px);
+  box-sizing: border-box;
+  width: min(1360px, 100%);
+  min-height: auto;
+  height: min(860px, calc(100dvh - 18px));
+  max-height: calc(100dvh - 18px);
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(430px, 0.95fr);
-  gap: clamp(26px, 3vw, 42px);
+  gap: clamp(22px, 2.6vw, 36px);
   position: relative;
   z-index: 1;
   border: 1px solid rgba(212, 175, 55, 0.18);
@@ -76,7 +82,7 @@
   box-shadow:
     0 34px 90px rgba(0, 0, 0, 0.52),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  padding: clamp(18px, 2.8vw, 38px);
+  padding: clamp(14px, 2.2vw, 28px);
   backdrop-filter: blur(18px);
 }
 
@@ -87,13 +93,13 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 0 clamp(14px, 2vw, 24px) 10px;
+  padding: 0 clamp(12px, 1.6vw, 20px) 6px;
   text-align: center;
 }
 
 .login-brand-logo {
-  width: min(700px, 100%);
-  max-height: min(50vh, 510px);
+  width: min(620px, 100%);
+  max-height: min(43dvh, 430px);
   object-fit: contain;
   margin: -18px auto 2px;
   filter:
@@ -103,9 +109,9 @@
 }
 
 .login-brand h1 {
-  margin: 2px auto 12px;
+  margin: 0 auto 10px;
   color: #f8fafc;
-  font-size: clamp(34px, 3.7vw, 58px);
+  font-size: clamp(32px, 3.35vw, 52px);
   font-weight: 950;
   letter-spacing: 0;
   line-height: 1;
@@ -134,7 +140,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   width: min(560px, 100%);
-  margin-top: clamp(18px, 2.8vh, 32px);
+  margin-top: clamp(14px, 2.2vh, 24px);
 }
 
 .login-features span {
@@ -155,15 +161,15 @@
 .login-features i {
   display: grid;
   place-items: center;
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   color: #d4af37;
   font-style: normal;
 }
 
 .login-features img {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   display: block;
   object-fit: contain;
   border-radius: 0;
@@ -181,16 +187,18 @@
 }
 
 .login-card {
+  box-sizing: border-box;
   align-self: center;
   min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(12px, 1.45vh, 18px);
-  min-height: min(80vh, 720px);
+  gap: clamp(10px, 1.2vh, 15px);
+  min-height: auto;
+  max-height: 100%;
   border: 1px solid rgba(212, 175, 55, 0.42);
   border-radius: 34px;
-  padding: clamp(28px, 3vw, 48px);
+  padding: clamp(22px, 2.5vw, 38px);
   background:
     radial-gradient(circle at 80% 10%, rgba(37, 99, 235, 0.18), transparent 32%),
     linear-gradient(145deg, rgba(15, 30, 52, 0.94), rgba(2, 6, 23, 0.9));
@@ -216,9 +224,9 @@
 }
 
 .login-card-header h2 {
-  margin: 14px 0 8px;
+  margin: 10px 0 6px;
   color: #f8fafc;
-  font-size: clamp(30px, 3.1vw, 42px);
+  font-size: clamp(28px, 2.8vw, 38px);
   line-height: 1.05;
   text-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
 }
@@ -231,14 +239,14 @@
 
 .login-field {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .login-input-shell {
   display: grid;
   grid-template-columns: 34px 1fr auto;
   align-items: center;
-  min-height: 58px;
+  min-height: 52px;
   border: 1px solid rgba(148, 163, 184, 0.42);
   border-radius: 14px;
   background: rgba(7, 17, 31, 0.62);
@@ -313,7 +321,7 @@
 
 .login-environment {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .login-environment-options {
@@ -327,7 +335,7 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
-  min-height: 58px;
+  min-height: 52px;
   border: 1px solid rgba(148, 163, 184, 0.34);
   border-radius: 14px;
   background: rgba(15, 30, 52, 0.62);
@@ -404,7 +412,7 @@
   justify-content: center;
   gap: 18px;
   width: 100%;
-  min-height: 62px;
+  min-height: 56px;
   border: none;
   border-radius: 12px;
   background: linear-gradient(180deg, #f1d46a, #d4af37 52%, #ae7d11);
@@ -439,12 +447,12 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
-  margin-top: 14px;
+  margin-top: 8px;
   border-top: 1px solid rgba(148, 163, 184, 0.2);
   color: #94a3b8;
   font-size: 14px;
   font-weight: 850;
-  padding-top: 18px;
+  padding-top: 14px;
   text-align: center;
 }
 
