@@ -3584,6 +3584,45 @@ app.delete(
    PRODUCTOS
 ========================= */
 
+const normalizarSubgruposVisibles = (subgrupos, opcionPadre) => {
+  const grupos = Array.isArray(subgrupos) ? subgrupos : [];
+  const gruposConOpciones = grupos.filter(
+    (grupo) => Array.isArray(grupo.opciones) && grupo.opciones.length > 0
+  );
+  const gruposSinOpciones = grupos.filter(
+    (grupo) => !Array.isArray(grupo.opciones) || grupo.opciones.length === 0
+  );
+
+  if (gruposSinOpciones.length === 0) {
+    return gruposConOpciones;
+  }
+
+  return [
+    {
+      id: `subopciones-${opcionPadre.id}`,
+      producto_id: opcionPadre.producto_id || null,
+      empresa_id: opcionPadre.empresa_id || null,
+      parent_opcion_id: opcionPadre.id,
+      nombre: `Opciones de ${opcionPadre.nombre}`,
+      obligatorio: true,
+      seleccion_multiple: false,
+      minimo: 1,
+      maximo: 1,
+      orden: 0,
+      opciones: gruposSinOpciones.map((grupo, index) => ({
+        id: `subopcion-${grupo.id}`,
+        grupo_id: `subopciones-${opcionPadre.id}`,
+        nombre: grupo.nombre,
+        precio_extra: 0,
+        orden: index,
+        activo: true,
+        subgrupos: [],
+      })),
+    },
+    ...gruposConOpciones,
+  ];
+};
+
 app.get(
   "/productos/:id/complementos",
   verificarToken,
@@ -3658,7 +3697,10 @@ app.get(
     gruposConOpciones.forEach((grupo) => {
       grupo.opciones = grupo.opciones.map((opcion) => ({
         ...opcion,
-        subgrupos: gruposPorParent.get(opcion.id) || [],
+        subgrupos: normalizarSubgruposVisibles(
+          gruposPorParent.get(opcion.id) || [],
+          opcion
+        ),
       }));
     });
 
