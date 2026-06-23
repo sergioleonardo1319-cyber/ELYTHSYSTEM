@@ -7,12 +7,14 @@ const configPath = path.join(rootDir, "capacitor.config.json");
 
 const configs = {
   production: {
-    appId: "com.cafeteria.pos",
-    appName: "Cafeteria POS",
+    appId: "com.elythsystems.pos",
+    appName: "ELYTH POS",
+    url: "https://elythsystem.vercel.app",
   },
   sandbox: {
-    appId: "com.cafeteria.pos.sandbox",
-    appName: "Cafeteria POS Sandbox",
+    appId: "com.elythsystems.pos.sandbox",
+    appName: "ELYTH POS Sandbox",
+    url: "https://elythsystem.vercel.app",
   },
 };
 
@@ -27,6 +29,12 @@ const nextConfig = {
   ...config,
   appId: selected.appId,
   appName: selected.appName,
+  server: {
+    ...(config.server || {}),
+    url: selected.url,
+    cleartext: false,
+    androidScheme: "https",
+  },
 };
 
 fs.writeFileSync(configPath, `${JSON.stringify(nextConfig, null, 2)}\n`);

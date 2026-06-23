@@ -1,9 +1,11 @@
 {
-  "appId": "com.cafeteria.pos",
-  "appName": "Cafeteria POS",
+  "appId": "com.elythsystems.pos",
+  "appName": "ELYTH POS",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "url": "https://elythsystem.vercel.app",
+    "cleartext": false
   }
 }

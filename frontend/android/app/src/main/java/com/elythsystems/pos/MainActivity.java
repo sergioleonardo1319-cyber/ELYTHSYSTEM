@@ -1,4 +1,4 @@
-package com.cafeteria.pos;
+package com.elythsystems.pos;
 
 import com.getcapacitor.BridgeActivity;
 
