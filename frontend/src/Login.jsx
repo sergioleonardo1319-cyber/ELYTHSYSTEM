@@ -15,6 +15,7 @@ import "./Login.css";
 export default function Login({ setUser }) {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [ambiente, setAmbiente] = useState("production");
   const [aviso, setAviso] = useState(null);
 
@@ -193,7 +194,7 @@ export default function Login({ setUser }) {
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={mostrarPassword ? "text" : "password"}
                 autoComplete="current-password"
                 placeholder="Contrasena"
                 value={password}
@@ -201,10 +202,27 @@ export default function Login({ setUser }) {
                 className="login-input"
               />
 
-              <svg className="login-eye" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-              </svg>
+              <button
+                type="button"
+                className="login-eye"
+                onClick={() => setMostrarPassword((actual) => !actual)}
+                aria-label={
+                  mostrarPassword
+                    ? "Ocultar contrasena"
+                    : "Mostrar contrasena"
+                }
+                title={
+                  mostrarPassword
+                    ? "Ocultar contrasena"
+                    : "Mostrar contrasena"
+                }
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                  {mostrarPassword && <path d="M4 4l16 16" />}
+                </svg>
+              </button>
             </div>
           </label>
 

@@ -263,8 +263,36 @@
 }
 
 .login-input-shell .login-eye {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #aab8cb;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.login-input-shell .login-eye svg {
   width: 25px;
   height: 25px;
+}
+
+.login-input-shell .login-eye:hover,
+.login-input-shell .login-eye:focus-visible {
+  background: rgba(212, 175, 55, 0.12);
+  color: #d4af37;
+  outline: none;
+}
+
+.login-input-shell .login-eye:active {
+  transform: scale(0.96);
 }
 
 .login-input {
