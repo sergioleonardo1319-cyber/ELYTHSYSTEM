@@ -57,16 +57,25 @@ export default function ModalComplementos({
 
     setSeleccion((prev) => {
       const actual = prev[grupo.id] || [];
+      const maximo = Number(grupo.maximo || 1);
 
       if (grupo.seleccion_multiple) {
         const existe = actual.includes(opcion.id);
+
+        if (maximo <= 1) {
+          return {
+            ...prev,
+            [grupo.id]: existe ? [] : [opcion.id],
+          };
+        }
+
         const nuevo = existe
           ? actual.filter((id) => id !== opcion.id)
           : [...actual, opcion.id];
 
         return {
           ...prev,
-          [grupo.id]: nuevo.slice(0, Number(grupo.maximo || nuevo.length)),
+          [grupo.id]: nuevo.slice(0, maximo || nuevo.length),
         };
       }
 
