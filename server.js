@@ -3626,6 +3626,90 @@ const normalizarSubgruposVisibles = (subgrupos, opcionPadre) => {
   ];
 };
 
+const construirArbolComplementos = (gruposRows, opcionesRows) => {
+  const gruposConOpciones = gruposRows.map((grupo) => ({
+    ...grupo,
+    opciones: opcionesRows
+      .filter((opcion) => opcion.grupo_id === grupo.id)
+      .map((opcion) => ({
+        ...opcion,
+        subgrupos: [],
+      })),
+  }));
+
+  const gruposPorParent = new Map();
+
+  gruposConOpciones.forEach((grupo) => {
+    if (!grupo.parent_opcion_id) return;
+
+    const lista = gruposPorParent.get(grupo.parent_opcion_id) || [];
+    lista.push(grupo);
+    gruposPorParent.set(grupo.parent_opcion_id, lista);
+  });
+
+  gruposConOpciones.forEach((grupo) => {
+    grupo.opciones = grupo.opciones.map((opcion) => ({
+      ...opcion,
+      subgrupos: gruposPorParent.get(opcion.id) || [],
+    }));
+  });
+
+  return gruposConOpciones.filter((grupo) => !grupo.parent_opcion_id);
+};
+
+app.get(
+  "/complementos/grupos",
+  verificarToken,
+  permitirRoles("admin"),
+  async (req, res) => {
+  try {
+    const empresaId = obtenerEmpresaId(req);
+    const productoExcluirId = req.query.producto_id
+      ? Number(req.query.producto_id)
+      : null;
+
+    const grupos = await db.query(
+      `
+      SELECT
+        cg.*,
+        p.nombre AS producto_nombre
+      FROM complemento_grupos cg
+      INNER JOIN productos p
+        ON p.id = cg.producto_id
+       AND p.empresa_id = cg.empresa_id
+      WHERE cg.empresa_id = $1
+      AND cg.activo = TRUE
+      AND ($2::INTEGER IS NULL OR cg.producto_id <> $2::INTEGER)
+      ORDER BY LOWER(cg.nombre), cg.producto_id, cg.orden ASC, cg.id ASC
+      `,
+      [empresaId, productoExcluirId]
+    );
+
+    const opciones = await db.query(
+      `
+      SELECT o.*
+      FROM complemento_opciones o
+      INNER JOIN complemento_grupos g
+        ON g.id = o.grupo_id
+      WHERE g.empresa_id = $1
+      AND g.activo = TRUE
+      AND o.activo = TRUE
+      AND ($2::INTEGER IS NULL OR g.producto_id <> $2::INTEGER)
+      ORDER BY o.orden ASC, o.id ASC
+      `,
+      [empresaId, productoExcluirId]
+    );
+
+    res.json(construirArbolComplementos(grupos.rows, opciones.rows));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Error obteniendo grupos de complementos",
+    });
+  }
+  }
+);
+
 app.get(
   "/productos/:id/complementos",
   verificarToken,
@@ -3677,25 +3761,10 @@ app.get(
       [id, empresaId]
     );
 
-    const gruposConOpciones = grupos.rows.map((grupo) => ({
-      ...grupo,
-      opciones: opciones.rows
-        .filter((opcion) => opcion.grupo_id === grupo.id)
-        .map((opcion) => ({
-          ...opcion,
-          subgrupos: [],
-        })),
-    }));
-
-    const gruposPorParent = new Map();
-
-    gruposConOpciones.forEach((grupo) => {
-      if (!grupo.parent_opcion_id) return;
-
-      const lista = gruposPorParent.get(grupo.parent_opcion_id) || [];
-      lista.push(grupo);
-      gruposPorParent.set(grupo.parent_opcion_id, lista);
-    });
+    const gruposConOpciones = construirArbolComplementos(
+      grupos.rows,
+      opciones.rows
+    );
 
     gruposConOpciones.forEach((grupo) => {
       grupo.opciones = grupo.opciones.map((opcion) => ({
@@ -3707,9 +3776,7 @@ app.get(
       }));
     });
 
-    res.json(
-      gruposConOpciones.filter((grupo) => !grupo.parent_opcion_id)
-    );
+    res.json(gruposConOpciones);
   } catch (error) {
     console.error(error);
     res.status(500).json({

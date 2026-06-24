@@ -12,6 +12,8 @@ export default function Productos({
   const [productoEliminar, setProductoEliminar] = useState(null);
   const [productoComplementos, setProductoComplementos] = useState(null);
   const [gruposComplementos, setGruposComplementos] = useState([]);
+  const [plantillasComplementos, setPlantillasComplementos] = useState([]);
+  const [plantillaSeleccionada, setPlantillaSeleccionada] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
   const [toast, setToast] = useState("");
 
@@ -533,19 +535,32 @@ const eliminarProducto = (producto) => {
 
 const abrirComplementos = async (producto) => {
   try {
-    const res = await fetch(
-      `${API}/productos/${producto.id}/complementos?empresa_id=${user.empresa_id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-        },
-      }
-    );
+    const headers = {
+      Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+    };
+
+    const [res, resPlantillas] = await Promise.all([
+      fetch(
+        `${API}/productos/${producto.id}/complementos?empresa_id=${user.empresa_id}`,
+        { headers }
+      ),
+      fetch(
+        `${API}/complementos/grupos?empresa_id=${user.empresa_id}&producto_id=${producto.id}`,
+        { headers }
+      ),
+    ]);
 
     const data = await leerRespuesta(res);
+    const dataPlantillas = await leerRespuesta(resPlantillas);
 
     if (!res.ok) {
       throw new Error(data.error || "Error cargando complementos");
+    }
+
+    if (!resPlantillas.ok) {
+      throw new Error(
+        dataPlantillas.error || "Error cargando grupos existentes"
+      );
     }
 
     setProductoComplementos(producto);
@@ -557,10 +572,67 @@ const abrirComplementos = async (producto) => {
           }))
         : []
     );
+    setPlantillasComplementos(
+      Array.isArray(dataPlantillas)
+        ? dataPlantillas.map((grupo) => ({
+            ...grupo,
+            opciones: Array.isArray(grupo.opciones) ? grupo.opciones : [],
+          }))
+        : []
+    );
+    setPlantillaSeleccionada("");
     setMostrarModalComplementos(true);
   } catch (error) {
     setToast(error.message);
   }
+};
+
+const clonarGrupoComplemento = (grupo, nivel = "grupo") => ({
+  id: `${nivel}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  nombre: grupo.nombre || "",
+  obligatorio: grupo.obligatorio !== false,
+  seleccion_multiple: grupo.seleccion_multiple === true,
+  minimo: grupo.minimo ?? 1,
+  maximo: grupo.maximo ?? 1,
+  opciones: (grupo.opciones || []).map((opcion) => ({
+    id: `opcion-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    nombre: opcion.nombre || "",
+    precio_extra: Number(opcion.precio_extra || 0),
+    subgrupos: (opcion.subgrupos || []).map((subgrupo) =>
+      clonarGrupoComplemento(subgrupo, "subgrupo")
+    ),
+  })),
+});
+
+const agregarGrupoExistente = (grupoId) => {
+  setPlantillaSeleccionada(grupoId);
+
+  if (!grupoId) return;
+
+  const plantilla = plantillasComplementos.find(
+    (grupo) => String(grupo.id) === String(grupoId)
+  );
+
+  if (!plantilla) return;
+
+  const yaExiste = gruposComplementos.some(
+    (grupo) =>
+      String(grupo.nombre || "").trim().toLowerCase() ===
+      String(plantilla.nombre || "").trim().toLowerCase()
+  );
+
+  if (yaExiste) {
+    setToast("Este grupo ya existe en el producto actual");
+    setPlantillaSeleccionada("");
+    return;
+  }
+
+  setGruposComplementos((prev) => [
+    ...prev,
+    clonarGrupoComplemento(plantilla),
+  ]);
+  setPlantillaSeleccionada("");
+  setToast("Grupo copiado al producto actual");
 };
 
 const agregarGrupoComplemento = () => {
@@ -889,6 +961,8 @@ const guardarComplementos = async () => {
     setMostrarModalComplementos(false);
     setProductoComplementos(null);
     setGruposComplementos([]);
+    setPlantillasComplementos([]);
+    setPlantillaSeleccionada("");
     setToast("Complementos guardados correctamente");
   } catch (error) {
     setToast(error.message);
@@ -2033,12 +2107,30 @@ productos.filter((prod) => {
             Crea grupos como Tipo de huevo, Base del licuado o Extras.
           </p>
 
-          <button
-            className="btn-complementos-agregar"
-            onClick={agregarGrupoComplemento}
-          >
-            + Agregar grupo
-          </button>
+          <div className="complementos-toolbar">
+            <button
+              className="btn-complementos-agregar"
+              onClick={agregarGrupoComplemento}
+            >
+              + Agregar grupo
+            </button>
+
+            <select
+              value={plantillaSeleccionada}
+              onChange={(e) => agregarGrupoExistente(e.target.value)}
+              className="complementos-selector"
+            >
+              <option value="">Agregar grupo existente...</option>
+              {plantillasComplementos.map((grupo) => (
+                <option key={grupo.id} value={grupo.id}>
+                  {grupo.nombre}
+                  {grupo.producto_nombre
+                    ? ` - ${grupo.producto_nombre}`
+                    : ""}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="complementos-admin-lista">
             {gruposComplementos.map((grupo, grupoIndex) => (
@@ -2381,10 +2473,12 @@ productos.filter((prod) => {
           <div className="modal-actions">
             <button
               className="btn-cancelar"
-              onClick={() => {
+            onClick={() => {
                 setMostrarModalComplementos(false);
                 setProductoComplementos(null);
                 setGruposComplementos([]);
+                setPlantillasComplementos([]);
+                setPlantillaSeleccionada("");
               }}
             >
               Cancelar
