@@ -29,16 +29,30 @@ const columnasImportacionClientes = [
 ];
 
 const ejemploImportacionClientes = [
-  "SERGIO LEONARDO",
-  "1234567",
-  "CIUDAD",
-  "5555-0000",
-  "cliente@email.com",
-  "1990-06-19",
-  "si",
-  "200.00",
-  "0",
-  "activo",
+  [
+    "SERGIO LEONARDO",
+    "1234567",
+    "CIUDAD",
+    "5555-0000",
+    "cliente@email.com",
+    "1990-06-19",
+    "si",
+    "200.00",
+    "0",
+    "activo",
+  ],
+  [
+    "CONSUMIDOR FRECUENTE",
+    "CF",
+    "CIUDAD",
+    "4444-0000",
+    "",
+    "1988-12-05",
+    "no",
+    "0",
+    "50.00",
+    "activo",
+  ],
 ];
 
 export default function Clientes({ user }) {
@@ -129,11 +143,22 @@ export default function Clientes({ user }) {
   };
 
   const descargarPlantillaClientes = () => {
+    const escaparCsv = (valor) => {
+      const texto = String(valor ?? "");
+      const necesitaComillas = /[",\n\r]/.test(texto);
+      const limpio = texto.replace(/"/g, '""');
+
+      return necesitaComillas ? `"${limpio}"` : limpio;
+    };
+
     const contenido = [
-      columnasImportacionClientes.join(";"),
-      ejemploImportacionClientes.join(";"),
-    ].join("\n");
-    const blob = new Blob([contenido], {
+      "sep=,",
+      columnasImportacionClientes.map(escaparCsv).join(","),
+      ...ejemploImportacionClientes.map((fila) =>
+        fila.map(escaparCsv).join(",")
+      ),
+    ].join("\r\n");
+    const blob = new Blob(["\ufeff", contenido], {
       type: "text/csv;charset=utf-8;",
     });
     const url = URL.createObjectURL(blob);
@@ -149,7 +174,8 @@ export default function Clientes({ user }) {
     const lineas = texto
       .split(/\r?\n/)
       .map((linea) => linea.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((linea) => !/^sep\s*=/i.test(linea));
 
     if (lineas.length < 2) return [];
 
