@@ -3657,6 +3657,17 @@ const construirArbolComplementos = (gruposRows, opcionesRows) => {
   return gruposConOpciones.filter((grupo) => !grupo.parent_opcion_id);
 };
 
+const normalizarOpcionesComplemento = (opciones = []) =>
+  opciones.map((opcion) => ({
+    ...opcion,
+    subgrupos: normalizarSubgruposVisibles(opcion.subgrupos, opcion).map(
+      (subgrupo) => ({
+        ...subgrupo,
+        opciones: normalizarOpcionesComplemento(subgrupo.opciones || []),
+      })
+    ),
+  }));
+
 app.get(
   "/complementos/grupos",
   verificarToken,
@@ -3767,13 +3778,7 @@ app.get(
     );
 
     gruposConOpciones.forEach((grupo) => {
-      grupo.opciones = grupo.opciones.map((opcion) => ({
-        ...opcion,
-        subgrupos: normalizarSubgruposVisibles(
-          gruposPorParent.get(opcion.id) || [],
-          opcion
-        ),
-      }));
+      grupo.opciones = normalizarOpcionesComplemento(grupo.opciones);
     });
 
     res.json(gruposConOpciones);
