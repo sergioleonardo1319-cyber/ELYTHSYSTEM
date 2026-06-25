@@ -287,6 +287,7 @@ export default function ModalCobro({
     if (!valor) {
       setSaldoFavorUsado("");
       setClienteBusqueda("");
+      usarConsumidorFinal();
       if (tieneProductosPreparacion) {
         setComandaNombre("");
       }
@@ -297,6 +298,9 @@ export default function ModalCobro({
 
     if (cliente) {
       setClienteBusqueda(`${cliente.codigo || ""} ${cliente.nombre || ""}`.trim());
+      setClienteNit((cliente.nit || "CF").toUpperCase());
+      setClienteNombre((cliente.nombre || "CONSUMIDOR FINAL").toUpperCase());
+      setClienteDireccion("CIUDAD");
     }
 
     if (cliente && tieneProductosPreparacion) {
