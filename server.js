@@ -7242,7 +7242,26 @@ app.get(
     const estado = String(req.query.estado || "").trim().toUpperCase();
     const params = [empresaId];
     let filtroDepartamento = "";
-    let filtroFecha = "AND c.fecha::date = CURRENT_DATE";
+    const filtroFechaDiaGuatemala = (paramFecha) => `
+      AND c.fecha >= (
+        ($${paramFecha}::date::timestamp AT TIME ZONE 'America/Guatemala')
+        AT TIME ZONE 'UTC'
+      )
+      AND c.fecha < (
+        (($${paramFecha}::date + INTERVAL '1 day')::timestamp AT TIME ZONE 'America/Guatemala')
+        AT TIME ZONE 'UTC'
+      )
+    `;
+    let filtroFecha = `
+      AND c.fecha >= (
+        (((NOW() AT TIME ZONE 'America/Guatemala')::date)::timestamp AT TIME ZONE 'America/Guatemala')
+        AT TIME ZONE 'UTC'
+      )
+      AND c.fecha < (
+        ((((NOW() AT TIME ZONE 'America/Guatemala')::date + INTERVAL '1 day')::timestamp AT TIME ZONE 'America/Guatemala')
+        AT TIME ZONE 'UTC')
+      )
+    `;
     let filtroEstado = "AND c.estado <> 'ENTREGADO'";
 
     if (departamento) {
@@ -7255,7 +7274,7 @@ app.get(
 
       if (fecha) {
         params.push(fecha);
-        filtroFecha = `AND c.fecha::date = $${params.length}::date`;
+        filtroFecha = filtroFechaDiaGuatemala(params.length);
       }
 
       if (estado && estado !== "TODOS") {
