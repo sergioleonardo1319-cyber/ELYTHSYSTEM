@@ -6,6 +6,14 @@ export default function ListaCategorias({
   setCategoriaSeleccionada,
   alturaCompleta = false,
 }) {
+  const obtenerClaseTexto = (nombre = "") => {
+    const longitud = String(nombre).trim().length;
+
+    if (longitud > 18) return "texto-muy-largo";
+    if (longitud > 11) return "texto-largo";
+    return "";
+  };
+
   return (
     <aside
       className={
@@ -29,7 +37,7 @@ export default function ListaCategorias({
               setCategoriaSeleccionada(cat.nombre)
             }
           >
-            {cat.nombre}
+            <span className={obtenerClaseTexto(cat.nombre)}>{cat.nombre}</span>
           </button>
         ))}
       </div>

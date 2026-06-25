@@ -28,7 +28,7 @@
 .pos-categorias-lista {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .pos-categoria-btn {
@@ -36,21 +36,40 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 60px;
+  min-height: 70px;
   border: 1px solid rgba(148, 163, 184, .35);
   border-radius: 12px;
   background: #475569;
   color: white;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
-  line-height: 1.15;
-  padding: 8px 10px;
+  line-height: 1.12;
+  padding: 10px 8px;
   text-align: center;
   transition:
     background .16s ease,
     border-color .16s ease,
     transform .16s ease;
+}
+
+.pos-categoria-btn span {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
+.pos-categoria-btn span.texto-largo {
+  font-size: 13px;
+  line-height: 1.12;
+}
+
+.pos-categoria-btn span.texto-muy-largo {
+  font-size: 12px;
+  line-height: 1.1;
 }
 
 .pos-categoria-btn:hover {
@@ -63,4 +82,28 @@
   border-color: #fbbf24;
   background: #f59e0b;
   color: #111827;
+}
+
+@media (max-width: 900px) {
+  .pos-categorias-panel {
+    padding: 14px;
+  }
+
+  .pos-categorias-lista {
+    gap: 10px;
+  }
+
+  .pos-categoria-btn {
+    min-height: 68px;
+    font-size: 14px;
+    padding: 9px 7px;
+  }
+
+  .pos-categoria-btn span.texto-largo {
+    font-size: 12px;
+  }
+
+  .pos-categoria-btn span.texto-muy-largo {
+    font-size: 11px;
+  }
 }
