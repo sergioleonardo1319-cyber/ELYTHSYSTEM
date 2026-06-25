@@ -84,20 +84,27 @@ export default function Cocina({ user }) {
     cargarComandas();
   };
 
+  const normalizarFiltrosHistorial = (filtros = {}) => ({
+    fecha: filtros.fecha || fechaLocalHoy(),
+    departamento: filtros.departamento || "TODOS",
+    estado: filtros.estado || "TODOS",
+  });
+
   const cargarHistorial = async (filtros = filtrosHistorial) => {
     try {
+      const filtrosFinales = normalizarFiltrosHistorial(filtros);
       const params = new URLSearchParams({
         empresa_id: user.empresa_id,
         historial: "1",
-        fecha: filtros.fecha,
+        fecha: filtrosFinales.fecha,
       });
 
-      if (filtros.departamento !== "TODOS") {
-        params.set("departamento", filtros.departamento);
+      if (filtrosFinales.departamento !== "TODOS") {
+        params.set("departamento", filtrosFinales.departamento);
       }
 
-      if (filtros.estado !== "TODOS") {
-        params.set("estado", filtros.estado);
+      if (filtrosFinales.estado !== "TODOS") {
+        params.set("estado", filtrosFinales.estado);
       }
 
       const res = await fetch(`${API}/comandas?${params.toString()}`, {
@@ -114,12 +121,12 @@ export default function Cocina({ user }) {
   };
 
   const abrirHistorial = () => {
-    const filtros = {
+    const filtros = normalizarFiltrosHistorial({
       ...filtrosHistorial,
       fecha: filtrosHistorial.fecha || fechaLocalHoy(),
       departamento: departamentoActivo || "TODOS",
       estado: "TODOS",
-    };
+    });
 
     setFiltrosHistorial(filtros);
     setMostrarHistorial(true);
@@ -869,7 +876,7 @@ export default function Cocina({ user }) {
               </CampoFiltro>
 
               <button
-                onClick={cargarHistorial}
+                onClick={() => cargarHistorial()}
                 style={{
                   ...boton("#2563eb"),
                   alignSelf: "end",
