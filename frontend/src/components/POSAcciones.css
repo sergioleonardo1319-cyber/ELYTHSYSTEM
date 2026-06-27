@@ -456,8 +456,26 @@
   font-size: 18px;
 }
 
+.pos-venta-item.anulada {
+  background: #f8fafc;
+  border-color: #fecaca;
+  opacity: .82;
+}
+
+.pos-venta-item.anulada b {
+  color: #991b1b;
+  text-decoration: line-through;
+}
+
+.pos-venta-anulada {
+  color: #b91c1c !important;
+  font-weight: 950 !important;
+  text-transform: uppercase;
+}
+
 .pos-venta-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -471,6 +489,69 @@
   font-weight: 950;
   min-height: 40px;
   padding: 0 14px;
+}
+
+.pos-venta-actions .pos-btn-anular,
+.pos-modal-actions .peligro {
+  background: #dc2626;
+}
+
+.pos-modal-overlay {
+  align-items: center;
+  background: rgba(15, 23, 42, .58);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 22px;
+  position: fixed;
+  z-index: 80;
+}
+
+.pos-modal-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+  display: grid;
+  gap: 18px;
+  max-width: 520px;
+  padding: 26px;
+  width: min(520px, 100%);
+}
+
+.pos-modal-card h2 {
+  color: #0f172a;
+  font-size: 24px;
+  margin: 0;
+}
+
+.pos-modal-card p {
+  color: #64748b;
+  font-weight: 800;
+  margin: 0;
+}
+
+.pos-modal-card input,
+.pos-modal-card textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 16px;
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+.pos-modal-actions {
+  display: flex;
+  gap: 1cm;
+  justify-content: flex-end;
+}
+
+.pos-modal-actions button {
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 950;
+  min-height: 44px;
+  padding: 0 18px;
 }
 
 .pos-resumen-grid {

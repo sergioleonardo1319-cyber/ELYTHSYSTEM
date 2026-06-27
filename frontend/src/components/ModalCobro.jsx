@@ -26,6 +26,8 @@ export default function ModalCobro({
   const [transferenciaCodigo, setTransferenciaCodigo] = useState("");
   const [comandaNombre, setComandaNombre] = useState("");
   const [alertaPago, setAlertaPago] = useState(null);
+  const [procesando, setProcesando] = useState(false);
+  const [claveOperacion, setClaveOperacion] = useState("");
 
   const generarCodigoRecibo = () =>
     `REC-${Date.now().toString(36).toUpperCase()}-${Math.random()
@@ -51,6 +53,13 @@ export default function ModalCobro({
       setTransferenciaCodigo("");
       setComandaNombre("");
       setAlertaPago(null);
+      setProcesando(false);
+      setClaveOperacion(
+        `VENTA-${Date.now().toString(36).toUpperCase()}-${Math.random()
+          .toString(36)
+          .slice(2, 10)
+          .toUpperCase()}`
+      );
 
       fetch(`${API}/clientes?activos=1`, {
         headers: {
@@ -130,7 +139,9 @@ export default function ModalCobro({
 
   if (!visible) return null;
 
-  const confirmarPago = () => {
+  const confirmarPago = async () => {
+    if (procesando) return;
+
     const esCredito = tipoComprobante === "Credito";
     const saldoFavorDisponible = Number(clienteSeleccionado?.saldo_favor || 0);
     const saldoFavorFinal = esCredito ? 0 : Number(saldoFavorUsado || 0);
@@ -253,7 +264,10 @@ export default function ModalCobro({
         ? generarCodigoRecibo()
         : "";
 
-    onConfirmar({
+    setProcesando(true);
+
+    try {
+      await onConfirmar({
       metodo_pago: metodoFinal,
       efectivo_recibido: esCredito ? 0 : Number(efectivo || 0),
       cambio: esCredito ? 0 : Math.max(cambio, 0),
@@ -275,10 +289,14 @@ export default function ModalCobro({
       saldo_favor_usado: saldoFavorFinal,
       tipo_comprobante: tipoComprobante,
       recibo_codigo: codigoReciboFinal,
+      clave_operacion: claveOperacion,
       comanda_nombre: tieneProductosPreparacion
         ? comandaNombre.trim()
         : "",
-    });
+      });
+    } finally {
+      setProcesando(false);
+    }
   };
 
   const seleccionarCliente = (valor) => {
@@ -706,6 +724,7 @@ export default function ModalCobro({
           <button
             className="cobro-btn-secondary"
             onClick={onCancelar}
+            disabled={procesando}
           >
             Cancelar
           </button>
@@ -713,8 +732,9 @@ export default function ModalCobro({
           <button
             className="cobro-btn-primary"
             onClick={confirmarPago}
+            disabled={procesando}
           >
-            Confirmar pago
+            {procesando ? "Procesando venta..." : "Confirmar pago"}
           </button>
         </div>
 

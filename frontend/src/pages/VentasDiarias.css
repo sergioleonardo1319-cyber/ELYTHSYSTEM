@@ -79,7 +79,7 @@
 .ventas-admin-resumen {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .ventas-admin-resumen article,
@@ -178,6 +178,27 @@
   vertical-align: top;
 }
 
+.ventas-admin-tabla tr.venta-anulada td {
+  background: #fff7ed;
+  color: #7f1d1d;
+}
+
+.venta-estado-anulada {
+  background: #fee2e2;
+  border-radius: 999px;
+  color: #b91c1c;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 950;
+  margin-top: 6px;
+  padding: 4px 8px;
+}
+
+.ventas-admin-tabla button.ventas-admin-anular {
+  background: #dc2626;
+  margin-left: 10px;
+}
+
 .ventas-admin-productos {
   max-width: 320px;
   white-space: normal;
@@ -232,6 +253,84 @@
   border: 1px dashed #cbd5e1;
   color: #64748b;
   text-align: center;
+}
+
+.ventas-admin-modal-overlay {
+  align-items: center;
+  background: rgba(15, 23, 42, .58);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 22px;
+  position: fixed;
+  z-index: 90;
+}
+
+.ventas-admin-modal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+  display: grid;
+  gap: 1cm;
+  max-width: 540px;
+  padding: 26px;
+  width: min(540px, 100%);
+}
+
+.ventas-admin-modal h2,
+.ventas-admin-modal p {
+  margin: 0;
+}
+
+.ventas-admin-modal p {
+  color: #64748b;
+  font-weight: 800;
+}
+
+.ventas-admin-modal label {
+  display: grid;
+  gap: 8px;
+}
+
+.ventas-admin-modal label span {
+  color: #334155;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.ventas-admin-modal input,
+.ventas-admin-modal textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  box-sizing: border-box;
+  font-size: 16px;
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+.ventas-admin-modal textarea {
+  min-height: 96px;
+}
+
+.ventas-admin-modal-actions {
+  display: flex;
+  gap: 1cm;
+  justify-content: flex-end;
+}
+
+.ventas-admin-modal-actions button {
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 950;
+  min-height: 44px;
+  padding: 0 18px;
+}
+
+.ventas-admin-modal-actions .peligro {
+  background: #dc2626;
+  color: #fff;
 }
 
 @media (max-width: 1100px) {

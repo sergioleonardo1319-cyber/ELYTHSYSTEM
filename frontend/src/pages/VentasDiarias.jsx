@@ -10,6 +10,12 @@ export default function VentasDiarias({ user }) {
   const [ventaAbierta, setVentaAbierta] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const [ventaAnular, setVentaAnular] = useState(null);
+  const [anulacion, setAnulacion] = useState({
+    motivo: "",
+    password_admin: "",
+  });
+  const [anulando, setAnulando] = useState(false);
 
   const cargarVentas = async () => {
     setCargando(true);
@@ -68,6 +74,7 @@ export default function VentasDiarias({ user }) {
       transferencia: Number(resumen?.transferencia || 0),
       credito: Number(resumen?.credito || 0),
       saldo_favor: Number(resumen?.saldo_favor || 0),
+      anuladas: Number(resumen?.anuladas || 0),
     }),
     [resumen]
   );
@@ -120,6 +127,8 @@ export default function VentasDiarias({ user }) {
         codigo_transferencia: venta.transferencia_codigo || "",
         credito: (esCredito ? Number(venta.total || 0) : 0).toFixed(2),
         total: Number(venta.total || 0).toFixed(2),
+        estado: venta.estado || "activa",
+        motivo_anulacion: venta.motivo_anulacion || "",
         cajero: venta.usuario_nombre || "",
       };
     });
@@ -149,11 +158,54 @@ export default function VentasDiarias({ user }) {
         transferencia: Number(venta.transferencia_monto || 0).toFixed(2),
         credito: (esCredito ? Number(venta.total || 0) : 0).toFixed(2),
         total_venta: Number(venta.total || 0).toFixed(2),
+        estado: venta.estado || "activa",
+        motivo_anulacion: venta.motivo_anulacion || "",
         cajero: venta.usuario_nombre || "",
       }));
     });
 
     descargarCSV(`ventas-detalle-${fecha}.csv`, filas);
+  };
+
+  const anularVenta = async (e) => {
+    e.preventDefault();
+
+    if (!ventaAnular) return;
+
+    if (!anulacion.motivo.trim()) {
+      setError("Ingrese el motivo de anulacion.");
+      return;
+    }
+
+    setAnulando(true);
+    setError("");
+
+    try {
+      const res = await fetch(`${API}/ventas/${ventaAnular.id}/anular`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          empresa_id: user.empresa_id,
+          motivo: anulacion.motivo,
+          password_admin: anulacion.password_admin,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error || "No se pudo anular la venta.");
+        return;
+      }
+
+      setVentaAnular(null);
+      setAnulacion({ motivo: "", password_admin: "" });
+      await cargarVentas();
+    } finally {
+      setAnulando(false);
+    }
   };
 
   return (
@@ -210,6 +262,10 @@ export default function VentasDiarias({ user }) {
         <article>
           <span>Credito</span>
           <strong>Q{resumenCalculado.credito.toFixed(2)}</strong>
+        </article>
+        <article>
+          <span>Anuladas</span>
+          <strong>{resumenCalculado.anuladas}</strong>
         </article>
       </section>
 
@@ -271,9 +327,16 @@ export default function VentasDiarias({ user }) {
 
                   return (
                     <Fragment key={venta.id}>
-                      <tr>
+                      <tr className={venta.estado === "anulada" ? "venta-anulada" : ""}>
                         <td>{new Date(venta.fecha).toLocaleTimeString()}</td>
-                        <td>{venta.tipo_comprobante} #{venta.id}</td>
+                        <td>
+                          {venta.tipo_comprobante} #{venta.id}
+                          {venta.estado === "anulada" && (
+                            <span className="venta-estado-anulada">
+                              ANULADA
+                            </span>
+                          )}
+                        </td>
                         <td>{venta.cliente_nit || "CF"}</td>
                         <td>{venta.cliente_nombre || "CONSUMIDOR FINAL"}</td>
                         <td className="ventas-admin-productos">{productosTexto(venta)}</td>
@@ -294,6 +357,21 @@ export default function VentasDiarias({ user }) {
                           >
                             {ventaAbierta === venta.id ? "Ocultar" : "Detalle"}
                           </button>
+                          {venta.estado !== "anulada" && (
+                            <button
+                              type="button"
+                              className="ventas-admin-anular"
+                              onClick={() => {
+                                setVentaAnular(venta);
+                                setAnulacion({
+                                  motivo: "",
+                                  password_admin: "",
+                                });
+                              }}
+                            >
+                              Anular
+                            </button>
+                          )}
                         </td>
                       </tr>
 
@@ -321,6 +399,60 @@ export default function VentasDiarias({ user }) {
           </div>
         )}
       </section>
+
+      {ventaAnular && (
+        <div className="ventas-admin-modal-overlay">
+          <form className="ventas-admin-modal" onSubmit={anularVenta}>
+            <h2>Anular venta #{ventaAnular.id}</h2>
+            <p>
+              La venta quedara marcada como anulada y no sumara en los reportes
+              activos. Ingresa motivo y password de administrador.
+            </p>
+
+            <label>
+              <span>Motivo obligatorio</span>
+              <textarea
+                value={anulacion.motivo}
+                onChange={(e) =>
+                  setAnulacion((prev) => ({
+                    ...prev,
+                    motivo: e.target.value,
+                  }))
+                }
+                placeholder="Ejemplo: factura duplicada por error"
+              />
+            </label>
+
+            <label>
+              <span>Password administrador</span>
+              <input
+                type="password"
+                value={anulacion.password_admin}
+                onChange={(e) =>
+                  setAnulacion((prev) => ({
+                    ...prev,
+                    password_admin: e.target.value,
+                  }))
+                }
+                placeholder="Password admin"
+              />
+            </label>
+
+            <div className="ventas-admin-modal-actions">
+              <button
+                type="button"
+                onClick={() => setVentaAnular(null)}
+                disabled={anulando}
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="peligro" disabled={anulando}>
+                {anulando ? "Anulando..." : "Confirmar anulacion"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </main>
   );
 }

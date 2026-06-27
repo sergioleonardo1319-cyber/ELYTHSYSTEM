@@ -59,6 +59,12 @@ export default function POSAcciones({
   });
   const [mensaje, setMensaje] = useState("");
   const [aviso, setAviso] = useState(null);
+  const [ventaAnular, setVentaAnular] = useState(null);
+  const [anulacion, setAnulacion] = useState({
+    motivo: "",
+    password_admin: "",
+  });
+  const [anulando, setAnulando] = useState(false);
 
   const token = sessionStorage.getItem("token");
 
@@ -363,6 +369,55 @@ export default function POSAcciones({
     tipo_comprobante: venta.tipo_comprobante,
     recibo_codigo: venta.recibo_codigo,
   });
+
+  const anularVenta = async (e) => {
+    e.preventDefault();
+
+    if (!ventaAnular) return;
+
+    if (!anulacion.motivo.trim()) {
+      setAviso({
+        tipo: "info",
+        titulo: "Motivo requerido",
+        mensaje: "Ingrese el motivo de anulacion.",
+      });
+      return;
+    }
+
+    setAnulando(true);
+
+    try {
+      const res = await fetch(`${API}/ventas/${ventaAnular.id}/anular`, {
+        method: "PATCH",
+        headers: authHeaders,
+        body: JSON.stringify({
+          empresa_id: user.empresa_id,
+          motivo: anulacion.motivo,
+          password_admin: anulacion.password_admin,
+        }),
+      });
+      const data = await leerRespuesta(res);
+
+      if (!res.ok) {
+        setAviso({
+          tipo: "error",
+          titulo: "No se pudo anular",
+          mensaje: data.error || "No fue posible anular la venta.",
+        });
+        return;
+      }
+
+      setVentaAnular(null);
+      setAnulacion({ motivo: "", password_admin: "" });
+      setMensaje("Venta anulada correctamente");
+      await cargarVentas();
+      await cargarResumen();
+      await cargarCajaActual({ abrirModal: false });
+      setTimeout(() => setMensaje(""), 2500);
+    } finally {
+      setAnulando(false);
+    }
+  };
 
   const creditosOcultos = useMemo(
     () => new Set(creditosAgregados.map((id) => Number(id))),
@@ -754,7 +809,14 @@ export default function POSAcciones({
 
                 <div className="pos-ventas-lista">
                   {ventas.map((venta) => (
-                    <div className="pos-venta-item" key={venta.id}>
+                    <div
+                      className={
+                        venta.estado === "anulada"
+                          ? "pos-venta-item anulada"
+                          : "pos-venta-item"
+                      }
+                      key={venta.id}
+                    >
                       <div>
                         <strong>Venta #{venta.id}</strong>
                         <span>
@@ -763,6 +825,11 @@ export default function POSAcciones({
                         <small>
                           {venta.cliente_nombre || "Consumidor Final"} - {venta.usuario_nombre || "-"}
                         </small>
+                        {venta.estado === "anulada" && (
+                          <small className="pos-venta-anulada">
+                            ANULADA - {venta.motivo_anulacion || "Sin motivo"}
+                          </small>
+                        )}
                       </div>
 
                       <b>Q{Number(venta.total || 0).toFixed(2)}</b>
@@ -784,6 +851,20 @@ export default function POSAcciones({
                         <button onClick={() => imprimirComanda(venta)}>
                           Comanda
                         </button>
+                        {venta.estado !== "anulada" && (
+                          <button
+                            className="pos-btn-anular"
+                            onClick={() => {
+                              setVentaAnular(venta);
+                              setAnulacion({
+                                motivo: "",
+                                password_admin: "",
+                              });
+                            }}
+                          >
+                            Anular
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -925,6 +1006,60 @@ export default function POSAcciones({
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {ventaAnular && (
+        <div className="pos-modal-overlay">
+          <form className="pos-modal-card" onSubmit={anularVenta}>
+            <h2>Anular venta #{ventaAnular.id}</h2>
+            <p>
+              La venta quedara marcada como anulada y no sumara en caja ni
+              reportes. Esta accion requiere password de administrador.
+            </p>
+
+            <label className="pos-caja-observacion">
+              <span>Motivo obligatorio</span>
+              <textarea
+                value={anulacion.motivo}
+                onChange={(e) =>
+                  setAnulacion((prev) => ({
+                    ...prev,
+                    motivo: e.target.value,
+                  }))
+                }
+                placeholder="Ejemplo: factura duplicada por error"
+              />
+            </label>
+
+            <label className="pos-caja-observacion">
+              <span>Password administrador</span>
+              <input
+                type="password"
+                value={anulacion.password_admin}
+                onChange={(e) =>
+                  setAnulacion((prev) => ({
+                    ...prev,
+                    password_admin: e.target.value,
+                  }))
+                }
+                placeholder="Password admin"
+              />
+            </label>
+
+            <div className="pos-modal-actions">
+              <button
+                type="button"
+                onClick={() => setVentaAnular(null)}
+                disabled={anulando}
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="peligro" disabled={anulando}>
+                {anulando ? "Anulando..." : "Confirmar anulacion"}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

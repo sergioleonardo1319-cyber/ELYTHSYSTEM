@@ -322,6 +322,42 @@ const inicializarCaja = async () => {
     `);
 
     await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS clave_operacion VARCHAR(120)
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS estado VARCHAR(20) DEFAULT 'activa'
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS fecha_anulacion TIMESTAMP
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS usuario_anulacion_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS autorizador_anulacion_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS motivo_anulacion TEXT
+    `);
+
+    await db.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS ventas_empresa_clave_operacion_idx
+      ON ventas (empresa_id, clave_operacion)
+      WHERE clave_operacion IS NOT NULL
+    `);
+
+    await db.query(`
       ALTER TABLE caja_gastos
       ADD COLUMN IF NOT EXISTS caja_turno_id INTEGER REFERENCES cajas_turnos(id) ON DELETE SET NULL
     `);
@@ -2635,6 +2671,8 @@ app.post(
   async (req, res) => {
 
   const client = await db.connect();
+  let claveOperacion = "";
+  let empresaIdFinal = null;
 
   try {
 
@@ -3449,6 +3487,7 @@ app.get(
       WHERE v.empresa_id = $1
       AND v.tipo_comprobante = 'Credito'
       AND COALESCE(v.estado_cuenta, 'pendiente') = 'pendiente'
+      AND COALESCE(v.estado, 'activa') <> 'anulada'
       GROUP BY v.id, c.id
       ORDER BY v.fecha ASC, v.id ASC
       `,
@@ -5577,25 +5616,31 @@ app.get(
     const result = await db.query(
       `
       SELECT
-        COUNT(*) AS ventas,
-        COALESCE(SUM(total),0) AS total,
+        COUNT(*) FILTER (WHERE COALESCE(estado, 'activa') <> 'anulada') AS ventas,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' THEN total ELSE 0 END),0) AS total,
         COUNT(*) FILTER (
-          WHERE COALESCE(tipo_comprobante, 'Factura') = 'Factura'
+          WHERE COALESCE(estado, 'activa') <> 'anulada'
+          AND COALESCE(tipo_comprobante, 'Factura') = 'Factura'
         ) AS facturas,
         COUNT(*) FILTER (
-          WHERE tipo_comprobante = 'Recibo'
+          WHERE COALESCE(estado, 'activa') <> 'anulada'
+          AND tipo_comprobante = 'Recibo'
         ) AS recibos,
         COUNT(*) FILTER (
-          WHERE tipo_comprobante = 'Credito'
+          WHERE COALESCE(estado, 'activa') <> 'anulada'
+          AND tipo_comprobante = 'Credito'
         ) AS creditos,
         COALESCE(SUM(total) FILTER (
-          WHERE COALESCE(tipo_comprobante, 'Factura') = 'Factura'
+          WHERE COALESCE(estado, 'activa') <> 'anulada'
+          AND COALESCE(tipo_comprobante, 'Factura') = 'Factura'
         ),0) AS total_facturas,
         COALESCE(SUM(total) FILTER (
-          WHERE tipo_comprobante = 'Recibo'
+          WHERE COALESCE(estado, 'activa') <> 'anulada'
+          AND tipo_comprobante = 'Recibo'
         ),0) AS total_recibos,
         COALESCE(SUM(total) FILTER (
-          WHERE tipo_comprobante = 'Credito'
+          WHERE COALESCE(estado, 'activa') <> 'anulada'
+          AND tipo_comprobante = 'Credito'
         ),0) AS total_creditos
       FROM ventas
       WHERE empresa_id = $1
@@ -5685,6 +5730,33 @@ const validarAutorizadorCaja = async (empresaId, autorizacion = {}) => {
   return result.rows[0];
 };
 
+const validarPasswordAdminEmpresa = async (empresaId, password) => {
+  const passwordFinal = String(password || "").trim();
+
+  if (!passwordFinal) {
+    throw new Error("Ingrese password de administrador");
+  }
+
+  const result = await db.query(
+    `
+    SELECT id, nombre, rol, password, empresa_id
+    FROM usuarios
+    WHERE empresa_id = $1
+    AND rol = 'admin'
+    AND password = $2
+    ORDER BY id ASC
+    LIMIT 1
+    `,
+    [empresaId, passwordFinal]
+  );
+
+  if (result.rows.length === 0) {
+    throw new Error("Password de administrador invalido");
+  }
+
+  return result.rows[0];
+};
+
 const obtenerAjustesCaja = async (turnoId, empresaId) => {
   const result = await db.query(
     `
@@ -5709,13 +5781,14 @@ const calcularResumenTurno = async (turnoId, empresaId) => {
   const ventas = await db.query(
     `
     SELECT
-      COUNT(*) AS transacciones,
-      COALESCE(SUM(total),0) AS total_vendido,
-      COALESCE(SUM(CASE WHEN tipo_comprobante = 'Credito' THEN total ELSE 0 END),0) AS total_credito,
-      COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN efectivo_recibido - cambio ELSE 0 END),0) AS total_efectivo,
-      COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN tarjeta_monto ELSE 0 END),0) AS total_tarjeta,
-      COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN transferencia_monto ELSE 0 END),0) AS total_transferencia,
-      COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN saldo_favor_usado ELSE 0 END),0) AS total_saldo_favor
+      COUNT(*) FILTER (WHERE COALESCE(estado, 'activa') <> 'anulada') AS transacciones,
+      COUNT(*) FILTER (WHERE COALESCE(estado, 'activa') = 'anulada') AS anuladas,
+      COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' THEN total ELSE 0 END),0) AS total_vendido,
+      COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante = 'Credito' THEN total ELSE 0 END),0) AS total_credito,
+      COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN efectivo_recibido - cambio ELSE 0 END),0) AS total_efectivo,
+      COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN tarjeta_monto ELSE 0 END),0) AS total_tarjeta,
+      COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN transferencia_monto ELSE 0 END),0) AS total_transferencia,
+      COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN saldo_favor_usado ELSE 0 END),0) AS total_saldo_favor
     FROM ventas
     WHERE empresa_id = $1
     AND caja_turno_id = $2
@@ -6398,6 +6471,7 @@ app.get(
         COUNT(v.id) FILTER (
           WHERE v.tipo_comprobante = 'Credito'
           AND COALESCE(v.estado_cuenta, 'pendiente') = 'pendiente'
+          AND COALESCE(v.estado, 'activa') <> 'anulada'
         ) AS documentos_pendientes,
         COALESCE(
           json_agg(
@@ -6418,6 +6492,7 @@ app.get(
         AND v.empresa_id = c.empresa_id
         AND v.tipo_comprobante = 'Credito'
         AND COALESCE(v.estado_cuenta, 'pendiente') = 'pendiente'
+        AND COALESCE(v.estado, 'activa') <> 'anulada'
       WHERE ${filtros.join(" AND ")}
       GROUP BY c.id
       ORDER BY c.saldo_pendiente DESC, c.nombre ASC
@@ -6486,6 +6561,7 @@ app.get(
       WHERE v.cliente_id = $1
       AND v.empresa_id = $2
       AND v.tipo_comprobante = 'Credito'
+      AND COALESCE(v.estado, 'activa') <> 'anulada'
       GROUP BY v.id
       ORDER BY v.fecha DESC
       `,
@@ -6993,13 +7069,14 @@ app.get(
     const resumen = await db.query(
       `
       SELECT
-        COUNT(*) AS transacciones,
-        COALESCE(SUM(total),0) AS total,
-        COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN efectivo_recibido - cambio ELSE 0 END),0) AS efectivo,
-        COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN tarjeta_monto ELSE 0 END),0) AS tarjeta,
-        COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN transferencia_monto ELSE 0 END),0) AS transferencia,
-        COALESCE(SUM(CASE WHEN tipo_comprobante = 'Credito' THEN total ELSE 0 END),0) AS credito,
-        COALESCE(SUM(saldo_favor_usado),0) AS saldo_favor
+        COUNT(*) FILTER (WHERE COALESCE(estado, 'activa') <> 'anulada') AS transacciones,
+        COUNT(*) FILTER (WHERE COALESCE(estado, 'activa') = 'anulada') AS anuladas,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' THEN total ELSE 0 END),0) AS total,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN efectivo_recibido - cambio ELSE 0 END),0) AS efectivo,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN tarjeta_monto ELSE 0 END),0) AS tarjeta,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN transferencia_monto ELSE 0 END),0) AS transferencia,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante = 'Credito' THEN total ELSE 0 END),0) AS credito,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' THEN saldo_favor_usado ELSE 0 END),0) AS saldo_favor
       FROM ventas
       WHERE empresa_id = $1
       AND fecha::date = $2
@@ -7081,13 +7158,14 @@ app.get(
     const result = await db.query(
       `
       SELECT
-        COUNT(*) AS transacciones,
-        COALESCE(SUM(total),0) AS total_vendido,
-        COALESCE(SUM(CASE WHEN tipo_comprobante = 'Credito' THEN total ELSE 0 END),0) AS total_credito,
-        COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN efectivo_recibido - cambio ELSE 0 END),0) AS total_efectivo,
-        COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN tarjeta_monto ELSE 0 END),0) AS total_tarjeta,
-        COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN transferencia_monto ELSE 0 END),0) AS total_transferencia,
-        COALESCE(SUM(CASE WHEN tipo_comprobante <> 'Credito' THEN saldo_favor_usado ELSE 0 END),0) AS total_saldo_favor
+        COUNT(*) FILTER (WHERE COALESCE(estado, 'activa') <> 'anulada') AS transacciones,
+        COUNT(*) FILTER (WHERE COALESCE(estado, 'activa') = 'anulada') AS anuladas,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' THEN total ELSE 0 END),0) AS total_vendido,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante = 'Credito' THEN total ELSE 0 END),0) AS total_credito,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN efectivo_recibido - cambio ELSE 0 END),0) AS total_efectivo,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN tarjeta_monto ELSE 0 END),0) AS total_tarjeta,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN transferencia_monto ELSE 0 END),0) AS total_transferencia,
+        COALESCE(SUM(CASE WHEN COALESCE(estado, 'activa') <> 'anulada' AND tipo_comprobante <> 'Credito' THEN saldo_favor_usado ELSE 0 END),0) AS total_saldo_favor
       FROM ventas
       WHERE empresa_id = $1
       AND fecha::date = CURRENT_DATE
@@ -7413,6 +7491,353 @@ app.put(
    VENTAS
 ========================= */
 
+app.patch(
+  "/ventas/:id/anular",
+  verificarToken,
+  permitirRoles("admin", "cajero"),
+  async (req, res) => {
+  const client = await db.connect();
+
+  try {
+    const empresaId = obtenerEmpresaId(req);
+    const ventaId = Number(req.params.id);
+    const motivo = String(req.body.motivo || "").trim();
+    const passwordAdmin = String(req.body.password_admin || "").trim();
+
+    if (!ventaId) {
+      return res.status(400).json({ error: "Venta invalida" });
+    }
+
+    if (!motivo) {
+      return res.status(400).json({ error: "Ingrese motivo de anulacion" });
+    }
+
+    const autorizador = await validarPasswordAdminEmpresa(
+      empresaId,
+      passwordAdmin
+    );
+
+    await client.query("BEGIN");
+
+    const ventaResult = await client.query(
+      `
+      SELECT *
+      FROM ventas
+      WHERE id = $1
+      AND empresa_id = $2
+      FOR UPDATE
+      `,
+      [ventaId, empresaId]
+    );
+
+    if (ventaResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Venta no encontrada" });
+    }
+
+    const venta = ventaResult.rows[0];
+
+    if (venta.estado === "anulada") {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ error: "La venta ya esta anulada" });
+    }
+
+    const detalles = await client.query(
+      `
+      SELECT
+        dv.*,
+        p.controla_stock,
+        p.nombre AS producto_nombre
+      FROM detalle_ventas dv
+      LEFT JOIN productos p
+        ON p.id = dv.producto_id
+       AND p.empresa_id = $2
+      WHERE dv.venta_id = $1
+      ORDER BY dv.id ASC
+      `,
+      [ventaId, empresaId]
+    );
+
+    for (const item of detalles.rows) {
+      if (item.producto_id && item.controla_stock !== false) {
+        await client.query(
+          `
+          UPDATE productos
+          SET existencia = existencia + $1
+          WHERE id = $2
+          AND empresa_id = $3
+          `,
+          [Number(item.cantidad || 0), item.producto_id, empresaId]
+        );
+
+        await client.query(
+          `
+          INSERT INTO movimientos_inventario
+          (
+            producto_id,
+            tipo,
+            cantidad,
+            motivo,
+            usuario_id,
+            empresa_id
+          )
+          VALUES
+          ($1,'entrada',$2,$3,$4,$5)
+          `,
+          [
+            item.producto_id,
+            Number(item.cantidad || 0),
+            `Anulacion venta #${ventaId}: ${motivo}`,
+            req.user.id,
+            empresaId,
+          ]
+        );
+      }
+    }
+
+    if (venta.cliente_id) {
+      const clienteResult = await client.query(
+        `
+        SELECT *
+        FROM clientes
+        WHERE id = $1
+        AND empresa_id = $2
+        FOR UPDATE
+        `,
+        [venta.cliente_id, empresaId]
+      );
+
+      const cliente = clienteResult.rows[0];
+
+      if (cliente) {
+        const saldoFavorAnterior = Number(cliente.saldo_favor || 0);
+        const saldoPendienteAnterior = Number(cliente.saldo_pendiente || 0);
+        let saldoFavorNuevo = saldoFavorAnterior;
+        let saldoPendienteNuevo = saldoPendienteAnterior;
+        const movimientosCliente = [];
+
+        if (Number(venta.saldo_favor_usado || 0) > 0) {
+          saldoFavorNuevo += Number(venta.saldo_favor_usado || 0);
+          movimientosCliente.push({
+            tipo: "anulacion_saldo_favor",
+            monto: Number(venta.saldo_favor_usado || 0),
+            motivo: `Reversion saldo a favor por anulacion venta #${ventaId}`,
+          });
+        }
+
+        if (venta.tipo_comprobante === "Credito") {
+          saldoPendienteNuevo = Math.max(
+            saldoPendienteNuevo - Number(venta.total || 0),
+            0
+          );
+          movimientosCliente.push({
+            tipo: "anulacion_credito",
+            monto: Number(venta.total || 0),
+            motivo: `Reversion credito por anulacion venta #${ventaId}`,
+          });
+        }
+
+        if (
+          saldoFavorNuevo !== saldoFavorAnterior ||
+          saldoPendienteNuevo !== saldoPendienteAnterior
+        ) {
+          await client.query(
+            `
+            UPDATE clientes
+            SET
+              saldo_favor = $1,
+              saldo_pendiente = $2
+            WHERE id = $3
+            AND empresa_id = $4
+            `,
+            [saldoFavorNuevo, saldoPendienteNuevo, cliente.id, empresaId]
+          );
+
+          for (const movimiento of movimientosCliente) {
+            await client.query(
+              `
+              INSERT INTO clientes_movimientos
+              (
+                cliente_id,
+                tipo,
+                monto,
+                venta_id,
+                motivo,
+                saldo_favor_anterior,
+                saldo_favor_nuevo,
+                saldo_pendiente_anterior,
+                saldo_pendiente_nuevo,
+                usuario_id,
+                empresa_id
+              )
+              VALUES
+              ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+              `,
+              [
+                cliente.id,
+                movimiento.tipo,
+                movimiento.monto,
+                ventaId,
+                movimiento.motivo,
+                saldoFavorAnterior,
+                saldoFavorNuevo,
+                saldoPendienteAnterior,
+                saldoPendienteNuevo,
+                req.user.id,
+                empresaId,
+              ]
+            );
+          }
+        }
+      }
+    }
+
+    for (const item of detalles.rows) {
+      const descripcion = String(item.descripcion || "");
+      const match = descripcion.match(/Cobro credito venta #(\d+)/i);
+
+      if (!match) continue;
+
+      const ventaCreditoId = Number(match[1]);
+
+      if (!ventaCreditoId) continue;
+
+      const creditoResult = await client.query(
+        `
+        SELECT *
+        FROM ventas
+        WHERE id = $1
+        AND empresa_id = $2
+        AND tipo_comprobante = 'Credito'
+        FOR UPDATE
+        `,
+        [ventaCreditoId, empresaId]
+      );
+
+      const credito = creditoResult.rows[0];
+
+      if (!credito || !credito.cliente_id) continue;
+
+      const clienteCreditoResult = await client.query(
+        `
+        SELECT *
+        FROM clientes
+        WHERE id = $1
+        AND empresa_id = $2
+        FOR UPDATE
+        `,
+        [credito.cliente_id, empresaId]
+      );
+
+      const clienteCredito = clienteCreditoResult.rows[0];
+
+      if (!clienteCredito) continue;
+
+      const saldoFavorAnterior = Number(clienteCredito.saldo_favor || 0);
+      const saldoPendienteAnterior = Number(clienteCredito.saldo_pendiente || 0);
+      const saldoPendienteNuevo =
+        saldoPendienteAnterior + Number(credito.total || 0);
+
+      await client.query(
+        `
+        UPDATE ventas
+        SET estado_cuenta = 'pendiente'
+        WHERE id = $1
+        AND empresa_id = $2
+        `,
+        [ventaCreditoId, empresaId]
+      );
+
+      await client.query(
+        `
+        UPDATE clientes
+        SET saldo_pendiente = $1
+        WHERE id = $2
+        AND empresa_id = $3
+        `,
+        [saldoPendienteNuevo, clienteCredito.id, empresaId]
+      );
+
+      await client.query(
+        `
+        INSERT INTO clientes_movimientos
+        (
+          cliente_id,
+          tipo,
+          monto,
+          venta_id,
+          motivo,
+          saldo_favor_anterior,
+          saldo_favor_nuevo,
+          saldo_pendiente_anterior,
+          saldo_pendiente_nuevo,
+          usuario_id,
+          empresa_id
+        )
+        VALUES
+        ($1,'anulacion_pago_credito',$2,$3,$4,$5,$5,$6,$7,$8,$9)
+        `,
+        [
+          clienteCredito.id,
+          Number(credito.total || 0),
+          ventaId,
+          `Reversion pago credito #${ventaCreditoId} por anulacion venta #${ventaId}`,
+          saldoFavorAnterior,
+          saldoPendienteAnterior,
+          saldoPendienteNuevo,
+          req.user.id,
+          empresaId,
+        ]
+      );
+    }
+
+    await client.query(
+      `
+      UPDATE comandas
+      SET
+        estado = 'ENTREGADO',
+        observacion = COALESCE(NULLIF(observacion, ''), '') || $3,
+        fecha_entregado = COALESCE(fecha_entregado, NOW())
+      WHERE venta_id = $1
+      AND empresa_id = $2
+      `,
+      [ventaId, empresaId, ` Anulada: ${motivo}`]
+    );
+
+    const anulada = await client.query(
+      `
+      UPDATE ventas
+      SET
+        estado = 'anulada',
+        fecha_anulacion = NOW(),
+        usuario_anulacion_id = $3,
+        autorizador_anulacion_id = $4,
+        motivo_anulacion = $5
+      WHERE id = $1
+      AND empresa_id = $2
+      RETURNING *
+      `,
+      [ventaId, empresaId, req.user.id, autorizador.id, motivo]
+    );
+
+    await client.query("COMMIT");
+
+    res.json({
+      mensaje: "Venta anulada correctamente",
+      venta: anulada.rows[0],
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error(error);
+    res.status(500).json({
+      error: error.message || "Error anulando venta",
+    });
+  } finally {
+    client.release();
+  }
+  }
+);
+
 app.post(
   "/ventas",
   verificarToken,
@@ -7428,9 +7853,11 @@ app.post(
       pago,
       empresa_id,
       creditos_pendientes,
+      clave_operacion,
     } = req.body;
 
-    const empresaIdFinal = obtenerEmpresaId(req);
+    empresaIdFinal = obtenerEmpresaId(req);
+    claveOperacion = String(clave_operacion || pago?.clave_operacion || "").trim();
     const turnoCaja = await obtenerCajaAbierta(req.user.id, empresaIdFinal);
 
     if (!turnoCaja) {
@@ -7456,6 +7883,24 @@ app.post(
     const productosVenta = [];
 
     await client.query("BEGIN");
+
+    if (claveOperacion) {
+      const ventaExistente = await client.query(
+        `
+        SELECT *
+        FROM ventas
+        WHERE empresa_id = $1
+        AND clave_operacion = $2
+        LIMIT 1
+        `,
+        [empresaIdFinal, claveOperacion]
+      );
+
+      if (ventaExistente.rows.length > 0) {
+        await client.query("COMMIT");
+        return res.json(ventaExistente.rows[0]);
+      }
+    }
 
     for (const item of productos || []) {
 
@@ -7769,11 +8214,12 @@ app.post(
         es_credito,
         estado_cuenta,
         caja_turno_id,
+        clave_operacion,
         usuario_id,
         empresa_id
       )
       VALUES
-      ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+      ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
       RETURNING *
       `,
       [
@@ -7799,6 +8245,7 @@ app.post(
         esCredito,
         esCredito ? "pendiente" : "pagada",
         turnoCaja.id,
+        claveOperacion || null,
         req.user.id,
         empresaIdFinal,
       ]
@@ -8246,6 +8693,23 @@ app.post(
   } catch (error) {
 
     await client.query("ROLLBACK");
+
+    if (error.code === "23505" && claveOperacion && empresaIdFinal) {
+      const ventaExistente = await db.query(
+        `
+        SELECT *
+        FROM ventas
+        WHERE empresa_id = $1
+        AND clave_operacion = $2
+        LIMIT 1
+        `,
+        [empresaIdFinal, claveOperacion]
+      );
+
+      if (ventaExistente.rows.length > 0) {
+        return res.json(ventaExistente.rows[0]);
+      }
+    }
 
     console.error(error);
 
