@@ -14,6 +14,34 @@ const JWT_SECRET = process.env.JWT_SECRET || "mi_clave_super_secreta";
 const PROJECT_ROOT = __dirname;
 const usarSSL = (prefix = "DB") =>
   String(process.env[`${prefix}_SSL`] || "").toLowerCase() === "true";
+const esSandbox = APP_ENV === "sandbox";
+
+const obtenerConfigDb = (prefix = "DB", permitirFallbackDb = true) => {
+  const usarFallback = permitirFallbackDb && prefix !== "DB";
+  const env = (name, fallback = "") =>
+    process.env[`${prefix}_${name}`] ||
+    (usarFallback ? process.env[`DB_${name}`] : "") ||
+    fallback;
+
+  return {
+    user: env("USER", "postgres"),
+    host: env("HOST", "127.0.0.1"),
+    database: env("NAME", prefix === "SANDBOX_DB" ? "pos_sandbox" : "pos"),
+    password: env("PASSWORD", "1234"),
+    port: Number(env("PORT", "5432")),
+    ssl:
+      usarSSL(prefix) || (usarFallback && usarSSL("DB"))
+        ? { rejectUnauthorized: false }
+        : false,
+  };
+};
+
+const sonMismaBase = (a, b) =>
+  String(a.host || "").toLowerCase() === String(b.host || "").toLowerCase() &&
+  String(a.database || "").toLowerCase() ===
+    String(b.database || "").toLowerCase() &&
+  Number(a.port || 5432) === Number(b.port || 5432) &&
+  String(a.user || "").toLowerCase() === String(b.user || "").toLowerCase();
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
@@ -30,29 +58,26 @@ app.get("/health", (req, res) => {
    DATABASE
 ========================= */
 
+const dbConfig = obtenerConfigDb(esSandbox ? "SANDBOX_DB" : "DB");
+const sandboxDbConfig = obtenerConfigDb("SANDBOX_DB");
+const sandboxSeparadoDeProductivo = !sonMismaBase(dbConfig, sandboxDbConfig);
+
+if (!esSandbox && !sandboxSeparadoDeProductivo) {
+  console.log(
+    "ADVERTENCIA: DB y SANDBOX_DB apuntan a la misma base. " +
+      "No ejecutes pruebas sandbox hasta separar las bases."
+  );
+}
+
 const db = new Pool({
-  user: process.env.DB_USER || "postgres",
-  host: process.env.DB_HOST || "127.0.0.1",
-  database: process.env.DB_NAME || "pos",
-  password: process.env.DB_PASSWORD || "1234",
-  port: Number(process.env.DB_PORT || 5432),
-  ssl: usarSSL("DB") ? { rejectUnauthorized: false } : false,
+  ...dbConfig,
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 30000,
   max: 10,
 });
 
 const sandboxDb = new Pool({
-  user: process.env.SANDBOX_DB_USER || process.env.DB_USER || "postgres",
-  host: process.env.SANDBOX_DB_HOST || process.env.DB_HOST || "127.0.0.1",
-  database: process.env.SANDBOX_DB_NAME || "pos_sandbox",
-  password: process.env.SANDBOX_DB_PASSWORD || process.env.DB_PASSWORD || "1234",
-  port: Number(process.env.SANDBOX_DB_PORT || process.env.DB_PORT || 5432),
-  ssl: usarSSL("SANDBOX_DB")
-    ? { rejectUnauthorized: false }
-    : usarSSL("DB")
-      ? { rejectUnauthorized: false }
-      : false,
+  ...sandboxDbConfig,
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 30000,
   max: 5,
@@ -1810,6 +1835,13 @@ app.post(
         });
       }
 
+      if (!sandboxSeparadoDeProductivo) {
+        return res.status(400).json({
+          error:
+            "Sandbox y productivo apuntan a la misma base. Separa SANDBOX_DB antes de refrescar.",
+        });
+      }
+
       const result = spawnSync(
         process.execPath,
         [
@@ -1983,6 +2015,13 @@ app.get(
         });
       }
 
+      if (!sandboxSeparadoDeProductivo) {
+        return res.status(400).json({
+          error:
+            "Sandbox y productivo apuntan a la misma base. No es seguro comparar ambientes.",
+        });
+      }
+
       const comparacion = await compararAmbientesEmpresa(empresaId);
 
       if (comparacion.error) {
@@ -2032,6 +2071,13 @@ app.post(
         return res.status(400).json({
           error:
             "La promocion a productivo debe ejecutarse desde productivo, no desde sandbox.",
+        });
+      }
+
+      if (!sandboxSeparadoDeProductivo) {
+        return res.status(400).json({
+          error:
+            "Sandbox y productivo apuntan a la misma base. No es seguro promover cambios.",
         });
       }
 

@@ -15,6 +15,10 @@ const SANDBOX_API =
   import.meta.env.VITE_SANDBOX_API_URL ||
   "http://localhost:3001";
 
+export const SANDBOX_CONFIGURED =
+  Boolean(import.meta.env.VITE_SANDBOX_API_URL) &&
+  SANDBOX_API.trim().toLowerCase() !== PRODUCTIVE_API.trim().toLowerCase();
+
 const ENV_STORAGE_KEY = "selectedEnvironment";
 
 export const ENVIRONMENT_OPTIONS = {

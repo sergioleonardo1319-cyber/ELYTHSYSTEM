@@ -3,6 +3,7 @@ import ModalAviso from "./components/ModalAviso";
 import {
   API,
   ENVIRONMENT_OPTIONS,
+  SANDBOX_CONFIGURED,
   clearSelectedEnvironment,
   setSelectedEnvironment,
 } from "./config";
@@ -23,6 +24,16 @@ export default function Login({ setUser }) {
     const ambienteLogin = ambiente;
 
     try {
+      if (ambienteLogin === "sandbox" && !SANDBOX_CONFIGURED) {
+        setAviso({
+          tipo: "error",
+          titulo: "Sandbox no configurado",
+          mensaje:
+            "El ambiente sandbox no tiene una URL separada de productivo. Configura VITE_SANDBOX_API_URL antes de ingresar a sandbox.",
+        });
+        return;
+      }
+
       setSelectedEnvironment(ambienteLogin);
 
       const res = await fetch(`${API}/login`, {
