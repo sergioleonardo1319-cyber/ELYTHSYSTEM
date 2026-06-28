@@ -1,0 +1,47 @@
+.pos-status-bar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  margin: 0 8px 8px;
+  padding: 8px 10px;
+}
+
+.pos-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.pos-status-item svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  color: #d4af37;
+}
+
+.pos-status-item span,
+.pos-status-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pos-status-item strong {
+  color: #0f172a;
+  font-weight: 950;
+}
+
+@media (max-width: 900px) {
+  .pos-status-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

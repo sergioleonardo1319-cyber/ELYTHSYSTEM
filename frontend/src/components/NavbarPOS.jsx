@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import {
+  BarChart3,
+  Boxes,
+  CircleUserRound,
+  ReceiptText,
+  Store,
+} from "lucide-react";
 import "./NavbarPOS.css";
 import { API } from "../config";
 
@@ -115,6 +122,7 @@ export default function NavbarPOS({
     if (posItems.length > 0) {
       grupos.push({
         label: "POS",
+        Icono: ReceiptText,
         items: posItems,
       });
     }
@@ -122,6 +130,7 @@ export default function NavbarPOS({
     if (operacionItems.length > 0) {
       grupos.push({
         label: "Operacion",
+        Icono: Boxes,
         items: operacionItems,
       });
     }
@@ -129,6 +138,7 @@ export default function NavbarPOS({
     if (administracionItems.length > 0) {
       grupos.push({
         label: "Administracion",
+        Icono: BarChart3,
         items: administracionItems,
       });
     }
@@ -137,6 +147,7 @@ export default function NavbarPOS({
   if (user?.rol === "superadmin") {
     grupos.push({
       label: "Admin SaaS",
+      Icono: BarChart3,
       items: [
         {
           label: "Empresas y usuarios",
@@ -157,56 +168,76 @@ export default function NavbarPOS({
         </span>
         <span className="nav-pos-titulos">
           <strong>{nombreEmpresa}</strong>
-          <small>Sistema POS</small>
+          <small>Powered by ELYTH SYSTEMS</small>
         </span>
       </div>
 
       <div className="nav-pos-links">
-        {grupos.map((grupo) => (
-          <div
-            className={
-              grupoActivo(grupo)
-                ? "nav-pos-grupo activo"
-                : "nav-pos-grupo"
-            }
-            key={grupo.label}
-          >
-            <button
-              type="button"
-              className="nav-pos-grupo-btn"
-              onClick={() => {
-                if (grupo.items.length === 1) {
-                  setVista(grupo.items[0].vista);
-                }
-              }}
-            >
-              {grupo.label}
-              {grupo.items.length > 1 && <span>v</span>}
-            </button>
+        {grupos.map((grupo) => {
+          const Icono = grupo.Icono || Boxes;
 
-            {grupo.items.length > 1 && (
-              <div className="nav-pos-menu">
-                {grupo.items.map((item) => (
-                  <button
-                    type="button"
-                    className={
-                      vista === item.vista
-                        ? "nav-pos-menu-item activo"
-                        : "nav-pos-menu-item"
-                    }
-                    key={item.vista}
-                    onClick={() => setVista(item.vista)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+          return (
+            <div
+              className={
+                grupoActivo(grupo)
+                  ? "nav-pos-grupo activo"
+                  : "nav-pos-grupo"
+              }
+              key={grupo.label}
+            >
+              <button
+                type="button"
+                className="nav-pos-grupo-btn"
+                onClick={() => {
+                  if (grupo.items.length === 1) {
+                    setVista(grupo.items[0].vista);
+                  }
+                }}
+              >
+                <Icono aria-hidden="true" />
+                {grupo.label}
+                {grupo.items.length > 1 && <span>v</span>}
+              </button>
+
+              {grupo.items.length > 1 && (
+                <div className="nav-pos-menu">
+                  {grupo.items.map((item) => (
+                    <button
+                      type="button"
+                      className={
+                        vista === item.vista
+                          ? "nav-pos-menu-item activo"
+                          : "nav-pos-menu-item"
+                      }
+                      key={item.vista}
+                      onClick={() => setVista(item.vista)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="nav-pos-actions">
+        <span className="nav-pos-status-pill">
+          <Store aria-hidden="true" />
+          Sucursal
+        </span>
+
+        <span className="nav-pos-status-pill">
+          <ReceiptText aria-hidden="true" />
+          Caja
+        </span>
+
+        <span className="nav-pos-status-pill">
+          <CircleUserRound aria-hidden="true" />
+          {user?.nombre || "Usuario"}
+        </span>
+
         {(dispositivoPOS?.esSunmi || dispositivoPOS?.esPOSAndroid) && (
           <span
             className={

@@ -16,6 +16,7 @@ import VentasDiarias from "./pages/VentasDiarias";
 import ListaProductos from "./components/ListaProductos";
 import POSLayout from "./components/POSLayout";
 import "./components/POSLayout.css";
+import POSStatusBar from "./components/POSStatusBar";
 import NavbarPOS from "./components/NavbarPOS";
 import useCarrito from "./hooks/useCarrito";
 import ModalCobro from "./components/ModalCobro";
@@ -1472,49 +1473,53 @@ export default function App() {
       )}
 
       {vista === "pos" && (
-        <POSLayout>
+        <>
+          <POSLayout>
 
-          <ListaCategorias
-            categorias={categorias}
-            categoriaSeleccionada={categoriaSeleccionada}
-            setCategoriaSeleccionada={setCategoriaSeleccionada}
-            alturaCompleta={usarCategoriasAlturaCompleta}
-          />
+            <ListaCategorias
+              categorias={categorias}
+              categoriaSeleccionada={categoriaSeleccionada}
+              setCategoriaSeleccionada={setCategoriaSeleccionada}
+              alturaCompleta={usarCategoriasAlturaCompleta}
+            />
 
-          <ListaProductos
-            productosFiltrados={productosFiltrados}
-            categoriaSeleccionada={categoriaSeleccionada}
-            busquedaPOS={busquedaPOS}
-            setBusquedaPOS={setBusquedaPOS}
-            agregarProductoPorBusqueda={agregarProductoPorBusqueda}
-            agregarAlCarrito={agregarProductoPOS}
-            accionesSlot={
-              <POSAcciones
-                user={user}
-                imprimirTicket={imprimirTicket}
-                imprimirComanda={imprimirComanda}
-                onAgregarCredito={agregarCreditoAlCarrito}
-                cajaActual={cajaActual}
-                onCajaActualizada={setCajaActual}
-                creditosAgregados={carrito
-                  .filter((item) => item.tipo_linea === "credito_pendiente")
-                  .map((item) => item.venta_credito_id)}
-              />
-            }
-          />
+            <ListaProductos
+              productosFiltrados={productosFiltrados}
+              categoriaSeleccionada={categoriaSeleccionada}
+              busquedaPOS={busquedaPOS}
+              setBusquedaPOS={setBusquedaPOS}
+              agregarProductoPorBusqueda={agregarProductoPorBusqueda}
+              agregarAlCarrito={agregarProductoPOS}
+              accionesSlot={
+                <POSAcciones
+                  user={user}
+                  imprimirTicket={imprimirTicket}
+                  imprimirComanda={imprimirComanda}
+                  onAgregarCredito={agregarCreditoAlCarrito}
+                  cajaActual={cajaActual}
+                  onCajaActualizada={setCajaActual}
+                  creditosAgregados={carrito
+                    .filter((item) => item.tipo_linea === "credito_pendiente")
+                    .map((item) => item.venta_credito_id)}
+                />
+              }
+            />
 
-          <Caja
-            carrito={carrito}
-            total={total}
-            actualizarCantidadDirecta={actualizarCantidadDirecta}
-            eliminarItem={eliminarItem}
-            abrirModalVaciar={() =>
-              setMostrarModalVaciar(true)
-            }
-            abrirModalCobro={abrirModalCobro}
-          />
+            <Caja
+              carrito={carrito}
+              total={total}
+              actualizarCantidadDirecta={actualizarCantidadDirecta}
+              eliminarItem={eliminarItem}
+              abrirModalVaciar={() =>
+                setMostrarModalVaciar(true)
+              }
+              abrirModalCobro={abrirModalCobro}
+            />
 
-        </POSLayout>
+          </POSLayout>
+
+          <POSStatusBar cajaActual={cajaActual} />
+        </>
       )}
 
       {vista === "productos" && (

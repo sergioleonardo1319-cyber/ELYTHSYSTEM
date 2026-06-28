@@ -1,249 +1,166 @@
+import {
+  Minus,
+  Plus,
+  ShoppingCart,
+  Trash2,
+} from "lucide-react";
+import "./Caja.css";
+
 export default function Caja({
   carrito,
   total,
   actualizarCantidadDirecta,
   eliminarItem,
-  guardarVenta,
   abrirModalVaciar,
   abrirModalCobro,
 }) {
+  const iva = Number(total || 0) * 0.12;
+  const subtotal = Number(total || 0) - iva;
+
+  const cambiarCantidad = (item, cambio) => {
+    const nuevaCantidad = Number(item.cantidad || 0) + cambio;
+
+    if (nuevaCantidad <= 0) {
+      eliminarItem(item.linea_id);
+      return;
+    }
+
+    actualizarCantidadDirecta(item.linea_id, nuevaCantidad);
+  };
+
   return (
-    <div
-      style={{
-        background: "#1e293b",
-        borderRadius: 12,
-        padding: 16,
-        color: "white",
-        minWidth: 0,
-        maxHeight: "calc(100vh - 190px)",
-        overflowY: "auto",
-      }}
-    >
-      <h2>🛒 Carrito</h2>
+    <aside className="pos-carrito-panel">
+      <header className="pos-carrito-header">
+        <h2>CARRITO</h2>
 
-      {/* Carrito vacío */}
-      {carrito.length === 0 && (
-        <p style={{ color: "#94a3b8" }}>Carrito vacío</p>
-      )}
-
-      {/* Productos del carrito */}
-      {carrito.map((item) => (
-        <div
-          key={item.linea_id}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) auto auto",
-            alignItems: "end",
-            marginBottom: 12,
-            gap: "8px 10px",
-            minWidth: 0,
-          }}
+        <button
+          type="button"
+          className="pos-carrito-vaciar"
+          onClick={abrirModalVaciar}
+          disabled={carrito.length === 0}
+          aria-label="Vaciar carrito"
+          title="Vaciar carrito"
         >
-          {/* Nombre y precio unitario */}
-          <div
-            style={{
-              gridColumn: "1 / -1",
-              minWidth: 0,
-            }}
-          >
-            <strong
-              style={{
-                display: "block",
-                overflowWrap: "anywhere",
-                lineHeight: 1.15,
-                fontSize: 15,
-              }}
-            >
-              {item.nombre}
-            </strong>
-            {item.tipo_linea === "credito_pendiente" && item.cliente_nombre && (
-              <div
-                style={{
-                  color: "#bfdbfe",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  marginTop: 3,
-                }}
-              >
-                {item.cliente_nombre}
-              </div>
-            )}
-            <div
-              style={{
-                fontSize: 12,
-                color: "#cbd5e1",
-                overflowWrap: "anywhere",
-              }}
-            >
-              Q{Number(item.precio).toFixed(2)} c/u
+          <Trash2 aria-hidden="true" />
+        </button>
+      </header>
+
+      <div className="pos-carrito-lista">
+        {carrito.map((item) => (
+          <article className="pos-carrito-item" key={item.linea_id}>
+            <div className="pos-carrito-imagen">
+              {item.imagen_url ? (
+                <img src={item.imagen_url} alt={item.nombre} />
+              ) : (
+                <span>{item.nombre?.slice(0, 1) || "P"}</span>
+              )}
             </div>
-            {Array.isArray(item.complementos) &&
-              item.complementos.length > 0 && (
-                <div
-                  style={{
-                    color: "#cbd5e1",
-                    fontSize: 11,
-                    lineHeight: 1.25,
-                    marginTop: 5,
-                    overflowWrap: "anywhere",
-                  }}
-                >
-                  {item.complementos.map((grupo) => (
-                    <div key={grupo.grupo_id || grupo.nombre}>
-                      {grupo.nombre}:{" "}
-                      {grupo.opciones
-                        ?.map((opcion) => opcion.nombre)
-                        .join(", ")}
-                    </div>
-                  ))}
+
+            <div className="pos-carrito-info">
+              <strong>{item.nombre}</strong>
+
+              {item.tipo_linea === "credito_pendiente" &&
+                item.cliente_nombre && (
+                  <small>{item.cliente_nombre}</small>
+                )}
+
+              <b>Q{Number(item.precio).toFixed(2)} c/u</b>
+
+              {Array.isArray(item.complementos) &&
+                item.complementos.length > 0 && (
+                  <div className="pos-carrito-complementos">
+                    {item.complementos.map((grupo) => (
+                      <span key={grupo.grupo_id || grupo.nombre}>
+                        {grupo.nombre}:{" "}
+                        {grupo.opciones
+                          ?.map((opcion) => opcion.nombre)
+                          .join(", ")}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+              {item.observacion && (
+                <div className="pos-carrito-nota">
+                  Nota: {item.observacion}
                 </div>
               )}
-            {item.observacion && (
-              <div
-                style={{
-                  background: "#334155",
-                  borderRadius: 6,
-                  color: "#fde68a",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  lineHeight: 1.25,
-                  marginTop: 6,
-                  padding: "5px 7px",
-                  overflowWrap: "anywhere",
-                }}
+            </div>
+
+            <div className="pos-carrito-controles">
+              {item.tipo_linea === "credito_pendiente" ? (
+                <span className="pos-carrito-pago">Pago</span>
+              ) : (
+                <div className="pos-carrito-cantidad">
+                  <button
+                    type="button"
+                    onClick={() => cambiarCantidad(item, -1)}
+                    aria-label="Restar cantidad"
+                  >
+                    <Minus aria-hidden="true" />
+                  </button>
+                  <span>{Number(item.cantidad || 0)}</span>
+                  <button
+                    type="button"
+                    onClick={() => cambiarCantidad(item, 1)}
+                    aria-label="Sumar cantidad"
+                  >
+                    <Plus aria-hidden="true" />
+                  </button>
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="pos-carrito-eliminar"
+                onClick={() => eliminarItem(item.linea_id)}
+                aria-label="Eliminar producto"
+                title="Eliminar producto"
               >
-                Nota: {item.observacion}
-              </div>
-            )}
-          </div>
+                <Trash2 aria-hidden="true" />
+              </button>
+            </div>
+          </article>
+        ))}
 
-          {/* Cantidad editable */}
-          {item.tipo_linea === "credito_pendiente" ? (
-            <span
-              style={{
-                background: "#334155",
-                borderRadius: 999,
-                color: "#dbeafe",
-                fontSize: 12,
-                fontWeight: 900,
-                padding: "7px 10px",
-                whiteSpace: "nowrap",
-                textAlign: "center",
-                justifySelf: "start",
-              }}
-            >
-              Pago
-            </span>
-          ) : (
-            <input
-              type="number"
-              min="1"
-              value={item.cantidad}
-              onChange={(e) =>
-                actualizarCantidadDirecta(
-                  item.linea_id,
-                  e.target.value
-                )
-              }
-              style={{
-                width: 52,
-                boxSizing: "border-box",
-                padding: 5,
-                borderRadius: 6,
-                border: "1px solid #ccc",
-                textAlign: "center",
-              }}
-            />
-          )}
-
-          {/* Subtotal */}
-          <div
-            style={{
-              color: "#22c55e",
-              fontWeight: "bold",
-              minWidth: 0,
-              textAlign: "left",
-              fontSize: 13,
-              whiteSpace: "nowrap",
-              alignSelf: "center",
-            }}
-          >
-            Q{(item.precio * item.cantidad).toFixed(2)}
-          </div>
-
-          {/* Eliminar producto */}
-          <button
-            onClick={() => eliminarItem(item.linea_id)}
-            style={{
-              background: "#ef4444",
-              color: "white",
-              border: "none",
-              borderRadius: 8,
-              height: 32,
-              width: 32,
-              cursor: "pointer",
-              fontWeight: 900,
-              alignSelf: "center",
-            }}
-          >
-            ✕
-          </button>
+        <div className="pos-carrito-mensaje">
+          <strong>
+            {carrito.length === 0
+              ? "No hay productos"
+              : "No hay mas productos"}
+          </strong>
+          <span>
+            {carrito.length === 0
+              ? "Seleccione un producto para comenzar la venta."
+              : "Seleccione un producto para continuar la venta."}
+          </span>
         </div>
-      ))}
+      </div>
 
-      {/* Separador */}
-      <hr
-        style={{
-          margin: "20px 0",
-          borderColor: "#334155",
-        }}
-      />
+      <section className="pos-carrito-resumen">
+        <div>
+          <span>Subtotal</span>
+          <strong>Q{subtotal.toFixed(2)}</strong>
+        </div>
+        <div>
+          <span>IVA (12%)</span>
+          <strong>Q{iva.toFixed(2)}</strong>
+        </div>
+        <div className="pos-carrito-total">
+          <span>TOTAL</span>
+          <strong>Q{Number(total || 0).toFixed(2)}</strong>
+        </div>
+      </section>
 
-      {/* Total */}
-      <h3>Total: Q{Number(total).toFixed(2)}</h3>
-
-      {/* Botón Cobrar */}
       <button
+        type="button"
+        className="pos-carrito-cobrar"
         onClick={abrirModalCobro}
         disabled={carrito.length === 0}
-        style={{
-          width: "100%",
-          padding: 12,
-          background:
-            carrito.length === 0 ? "#64748b" : "#22c55e",
-          color: "white",
-          border: "none",
-          borderRadius: 8,
-          fontWeight: "bold",
-          cursor:
-            carrito.length === 0 ? "not-allowed" : "pointer",
-          marginBottom: 10,
-          fontSize: 16,
-        }}
       >
-        💵 Cobrar
+        <ShoppingCart aria-hidden="true" />
+        <span>COBRAR</span>
       </button>
-
-      {/* Botón Vaciar carrito */}
-      <button
-        onClick={abrirModalVaciar}
-        disabled={carrito.length === 0}
-        style={{
-          width: "100%",
-          padding: 12,
-          background:
-            carrito.length === 0 ? "#64748b" : "#ef4444",
-          color: "white",
-          border: "none",
-          borderRadius: 8,
-          fontWeight: "bold",
-          cursor:
-            carrito.length === 0 ? "not-allowed" : "pointer",
-          fontSize: 16,
-        }}
-      >
-        🗑 Vaciar carrito
-      </button>
-    </div>
+    </aside>
   );
 }

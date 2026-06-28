@@ -73,6 +73,7 @@ export default function useCarrito(onAviso) {
           nombre: producto.nombre,
           precio,
           precio_base: precioBase,
+          imagen_url: producto.imagen_url || "",
           cantidad: 1,
           existencia,
           controlaStock,

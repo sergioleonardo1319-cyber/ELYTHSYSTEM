@@ -1,0 +1,348 @@
+.pos-carrito-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: calc(100vh - 190px);
+  max-height: calc(100vh - 190px);
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.14);
+  border-radius: 14px;
+  background: #1e293b;
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+  color: #f8fafc;
+  padding: 16px;
+}
+
+.pos-carrito-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pos-carrito-header h2 {
+  color: #f8fafc;
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1;
+  margin: 0;
+}
+
+.pos-carrito-vaciar,
+.pos-carrito-eliminar,
+.pos-carrito-cantidad button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(212, 175, 55, 0.36);
+  background: rgba(15, 23, 42, 0.32);
+  color: #d4af37;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.pos-carrito-vaciar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.pos-carrito-vaciar svg,
+.pos-carrito-eliminar svg {
+  width: 19px;
+  height: 19px;
+}
+
+.pos-carrito-vaciar:hover,
+.pos-carrito-eliminar:hover,
+.pos-carrito-cantidad button:hover {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.72);
+  transform: translateY(-1px);
+}
+
+.pos-carrito-vaciar:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.pos-carrito-lista {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+
+.pos-carrito-item {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.28);
+  padding: 10px;
+}
+
+.pos-carrito-imagen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.14);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.pos-carrito-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pos-carrito-imagen span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #d4af37;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.pos-carrito-info {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pos-carrito-info strong {
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
+.pos-carrito-info b,
+.pos-carrito-info small {
+  display: block;
+  line-height: 1.2;
+}
+
+.pos-carrito-info b {
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.pos-carrito-info small {
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.pos-carrito-complementos {
+  display: grid;
+  gap: 2px;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 760;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.pos-carrito-nota {
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.08);
+  color: #fef3c7;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.25;
+  padding: 6px 8px;
+  overflow-wrap: anywhere;
+}
+
+.pos-carrito-controles {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pos-carrito-cantidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pos-carrito-cantidad button {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.pos-carrito-cantidad button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.pos-carrito-cantidad span,
+.pos-carrito-pago {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.96);
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 950;
+  padding: 0 10px;
+}
+
+.pos-carrito-pago {
+  color: #d4af37;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.pos-carrito-eliminar {
+  width: 36px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.pos-carrito-mensaje {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid rgba(212, 175, 55, 0.18);
+  color: #94a3b8;
+  margin-top: 2px;
+  padding: 14px 4px 4px;
+  text-align: center;
+}
+
+.pos-carrito-mensaje strong {
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.pos-carrito-mensaje span {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.3;
+}
+
+.pos-carrito-resumen {
+  display: grid;
+  gap: 9px;
+  border-top: 1px solid rgba(212, 175, 55, 0.32);
+  margin-top: 12px;
+  padding-top: 12px;
+  transform: translateY(-10px);
+}
+
+.pos-carrito-resumen div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.pos-carrito-resumen strong {
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.pos-carrito-resumen .pos-carrito-total {
+  display: grid;
+  gap: 3px;
+  border-top: 1px solid rgba(212, 175, 55, 0.28);
+  margin-top: 2px;
+  padding-top: 10px;
+}
+
+.pos-carrito-total span {
+  color: #d4af37;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: 0.05em;
+}
+
+.pos-carrito-total strong {
+  color: #f8fafc;
+  font-size: 29px;
+  line-height: 1;
+}
+
+.pos-carrito-cobrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(212, 175, 55, 0.72);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.34);
+  color: #f8fafc;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  margin-top: 4px;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.pos-carrito-cobrar svg {
+  color: #d4af37;
+  width: 20px;
+  height: 20px;
+}
+
+.pos-carrito-cobrar:hover {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: #d4af37;
+  transform: translateY(-1px);
+}
+
+.pos-carrito-cobrar:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+@media (max-width: 980px) {
+  .pos-carrito-panel {
+    max-height: none;
+    min-height: 420px;
+  }
+}

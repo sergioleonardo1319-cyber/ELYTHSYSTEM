@@ -1,9 +1,26 @@
 .pos-layout {
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr) 292px;
+  grid-template-columns: clamp(220px, 18vw, 260px) minmax(430px, 1fr) clamp(280px, 22vw, 330px);
   align-items: stretch;
   gap: 12px;
   min-height: calc(100vh - 190px);
   width: 100%;
   overflow-x: hidden;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1100px) {
+  .pos-layout {
+    grid-template-columns: 220px minmax(0, 1fr) 290px;
+    gap: 10px;
+    padding: 6px;
+  }
+}
+
+@media (max-width: 860px) {
+  .pos-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
 }

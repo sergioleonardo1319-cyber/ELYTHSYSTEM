@@ -1,3 +1,4 @@
+import { BadgeDollarSign } from "lucide-react";
 import "./ListaProductos.css";
 
 export default function ListaProductos({
@@ -15,10 +16,9 @@ export default function ListaProductos({
         <div>
           <h2>
             {busquedaPOS
-              ? "Resultados de busqueda"
+              ? "Resultados"
               : categoriaSeleccionada || "Seleccione categoria"}
           </h2>
-          <p>Busca por nombre, codigo o UPC.</p>
         </div>
 
         <div className="pos-buscador-acciones">
@@ -31,13 +31,16 @@ export default function ListaProductos({
                   agregarProductoPorBusqueda();
                 }
               }}
-              placeholder="Escanear codigo o buscar producto..."
+              placeholder="Buscar"
               autoComplete="off"
               autoFocus
             />
           </div>
 
-          {accionesSlot}
+          <div className="pos-buscador-menu">
+            <BadgeDollarSign aria-hidden="true" />
+            {accionesSlot}
+          </div>
         </div>
       </div>
 
