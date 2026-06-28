@@ -1,4 +1,4 @@
-import { BadgeDollarSign } from "lucide-react";
+import { List, Search } from "lucide-react";
 import "./ListaProductos.css";
 
 export default function ListaProductos({
@@ -13,16 +13,14 @@ export default function ListaProductos({
   return (
     <div className="pos-productos-panel">
       <div className="pos-productos-header">
-        <div>
+        <div className="pos-productos-toolbar-left">
           <h2>
             {busquedaPOS
               ? "Resultados"
               : categoriaSeleccionada || "Seleccione categoria"}
           </h2>
-        </div>
-
-        <div className="pos-buscador-acciones">
           <div className="pos-buscador-wrap">
+            <Search className="pos-buscador-icono" aria-hidden="true" />
             <input
               value={busquedaPOS}
               onChange={(e) => setBusquedaPOS(e.target.value)}
@@ -36,11 +34,11 @@ export default function ListaProductos({
               autoFocus
             />
           </div>
+        </div>
 
-          <div className="pos-buscador-menu">
-            <BadgeDollarSign aria-hidden="true" />
-            {accionesSlot}
-          </div>
+        <div className="pos-buscador-menu">
+          <List aria-hidden="true" />
+          {accionesSlot}
         </div>
       </div>
 
@@ -65,6 +63,11 @@ export default function ListaProductos({
               disabled={deshabilitado}
             >
               <div className="pos-producto-imagen">
+                {/* Nota:
+                    El fondo blanco pertenece al archivo de imagen.
+                    CSS no puede eliminarlo de forma perfecta.
+                    Para que el producto se vea sin fondo, subir imagenes PNG/WebP transparentes
+                    o procesarlas previamente con una herramienta de remove background. */}
                 {producto.imagen_url ? (
                   <img
                     src={producto.imagen_url}
