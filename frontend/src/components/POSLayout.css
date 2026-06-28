@@ -1,6 +1,6 @@
 .pos-layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 360px;
+  grid-template-columns: 260px minmax(0, 1fr) 400px;
   align-items: stretch;
   gap: 14px;
   height: calc(100vh - 188px);
@@ -13,7 +13,7 @@
 
 @media (max-width: 1100px) {
   .pos-layout {
-    grid-template-columns: 230px minmax(0, 1fr) 310px;
+    grid-template-columns: 230px minmax(0, 1fr) 340px;
     gap: 12px;
   }
 }

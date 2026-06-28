@@ -1,24 +1,30 @@
 .pos-carrito-panel {
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-width: 0;
   min-height: 0;
   max-height: none;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 14px;
-  background: linear-gradient(180deg, #0b1828, #07111f);
+  background: #0b1828;
   box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
   color: #f8fafc;
-  padding: 16px;
+  padding: 0;
 }
 
 .pos-carrito-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
   gap: 12px;
-  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 0;
+  padding: 18px;
 }
 
 .pos-carrito-header h2 {
@@ -72,33 +78,40 @@
   transform: none;
 }
 
-.pos-carrito-lista {
-  display: grid;
-  align-content: start;
-  gap: 12px;
+.pos-carrito-contenido {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-right: 4px;
-  scrollbar-width: thin;
+  overflow: visible;
+}
+
+.pos-carrito-lista {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  overflow: visible;
+  padding: 14px;
 }
 
 .pos-carrito-item {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  gap: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.28);
-  padding: 10px;
+  grid-template-columns: 64px minmax(0, 1fr) 40px;
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: #101f31;
+  padding: 14px;
 }
 
 .pos-carrito-imagen {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 58px;
-  height: 58px;
+  width: 64px;
+  height: 64px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
@@ -133,8 +146,8 @@
 
 .pos-carrito-info strong {
   color: #f8fafc;
-  font-size: 14px;
-  font-weight: 950;
+  font-size: 17px;
+  font-weight: 800;
   line-height: 1.18;
   overflow-wrap: anywhere;
   text-transform: uppercase;
@@ -147,8 +160,8 @@
 }
 
 .pos-carrito-info b {
-  color: #dbeafe;
-  font-size: 12px;
+  color: #f5b52e;
+  font-size: 16px;
   font-weight: 850;
 }
 
@@ -181,11 +194,11 @@
 }
 
 .pos-carrito-controles {
-  grid-column: 1 / -1;
+  grid-column: 2 / 4;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pos-carrito-cantidad {
@@ -229,6 +242,7 @@
   width: 36px;
   height: 32px;
   border-radius: 10px;
+  flex: 0 0 auto;
 }
 
 .pos-carrito-mensaje {
@@ -257,10 +271,12 @@
 .pos-carrito-resumen {
   display: grid;
   gap: 9px;
-  border-top: 1px solid rgba(212, 175, 55, 0.32);
-  margin-top: 12px;
-  padding-top: 12px;
-  transform: translateY(-10px);
+  flex-shrink: 0;
+  border-top: 1px solid rgba(245, 181, 46, 0.25);
+  background: #0b1828;
+  margin-top: 0;
+  padding: 18px;
+  transform: none;
 }
 
 .pos-carrito-resumen div {
@@ -305,7 +321,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: 100%;
+  width: calc(100% - 36px);
   min-height: 48px;
   border: 1px solid rgba(212, 175, 55, 0.72);
   border-radius: 14px;
@@ -315,7 +331,7 @@
   font-size: 16px;
   font-weight: 950;
   letter-spacing: 0.02em;
-  margin-top: 4px;
+  margin: 0 18px 18px;
   transition:
     background 180ms ease,
     border-color 180ms ease,
