@@ -5,7 +5,7 @@ import {
   CupSoda,
   EggFried,
   Gift,
-  IceCreamBowl,
+  IceCreamCone,
   Popcorn,
   Sandwich,
   Star,
@@ -15,7 +15,7 @@ import "./ListaCategorias.css";
 const iconosCategoria = [
   {
     claves: ["helado", "ice"],
-    Icono: IceCreamBowl,
+    Icono: IceCreamCone,
   },
   {
     claves: ["bebida", "soda", "jugo", "licuado"],
@@ -38,7 +38,7 @@ const iconosCategoria = [
     Icono: CakeSlice,
   },
   {
-    claves: ["snack", "boquita"],
+    claves: ["snack", "snak", "boquita"],
     Icono: Popcorn,
   },
   {
@@ -67,20 +67,22 @@ const obtenerIconoCategoria = (nombre = "") => {
   return encontrado?.Icono || CirclePlus;
 };
 
+const obtenerCantidadProductos = (categoria = {}) =>
+  Number(
+    categoria.totalProductos ??
+      categoria.total_productos ??
+      categoria.productos ??
+      categoria.cantidad_productos ??
+      categoria.total ??
+      0
+  );
+
 export default function ListaCategorias({
   categorias,
   categoriaSeleccionada,
   setCategoriaSeleccionada,
   alturaCompleta = false,
 }) {
-  const obtenerClaseTexto = (nombre = "") => {
-    const longitud = String(nombre).trim().length;
-
-    if (longitud > 18) return "texto-muy-largo";
-    if (longitud > 11) return "texto-largo";
-    return "";
-  };
-
   return (
     <aside
       className={
@@ -89,28 +91,29 @@ export default function ListaCategorias({
           : "pos-categorias-panel"
       }
     >
-      <h2>Categorias</h2>
+      <h2>CATEGORIAS</h2>
 
       <div className="pos-categorias-lista">
         {categorias.map((cat) => (
           (() => {
             const Icono = obtenerIconoCategoria(cat.nombre);
+            const activo = categoriaSeleccionada === cat.nombre;
+            const cantidadProductos = obtenerCantidadProductos(cat);
 
             return (
               <button
-                key={cat.id}
-                className={
-                  categoriaSeleccionada === cat.nombre
-                    ? "pos-categoria-btn activo"
-                    : "pos-categoria-btn"
-                }
+                key={cat.id || cat.nombre}
+                className={activo ? "pos-categoria-btn activo" : "pos-categoria-btn"}
                 onClick={() =>
                   setCategoriaSeleccionada(cat.nombre)
                 }
               >
-                <Icono aria-hidden="true" />
-                <span className={obtenerClaseTexto(cat.nombre)}>
-                  {cat.nombre}
+                <Icono className="pos-categoria-icono" aria-hidden="true" />
+                <span className="pos-categoria-texto">
+                  <span className="pos-categoria-nombre">{cat.nombre}</span>
+                  <span className="pos-categoria-conteo">
+                    {cantidadProductos} productos
+                  </span>
                 </span>
               </button>
             );
