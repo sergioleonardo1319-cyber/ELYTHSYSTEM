@@ -2,12 +2,12 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: calc(100vh - 190px);
-  max-height: calc(100vh - 190px);
+  min-height: 0;
+  max-height: none;
   overflow: hidden;
-  border: 1px solid rgba(212, 175, 55, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 14px;
-  background: #1e293b;
+  background: linear-gradient(180deg, #0b1828, #07111f);
   box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
   color: #f8fafc;
   padding: 16px;
@@ -100,9 +100,9 @@
   width: 58px;
   height: 58px;
   overflow: hidden;
-  border: 1px solid rgba(212, 175, 55, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
-  background: #f8fafc;
+  background: #0f1f32;
 }
 
 .pos-carrito-imagen img {
@@ -213,8 +213,8 @@
   min-width: 36px;
   height: 32px;
   border-radius: 10px;
-  background: rgba(248, 250, 252, 0.96);
-  color: #0f172a;
+  background: #0f1f32;
+  color: #ffffff;
   font-size: 14px;
   font-weight: 950;
   padding: 0 10px;
@@ -309,7 +309,7 @@
   min-height: 48px;
   border: 1px solid rgba(212, 175, 55, 0.72);
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.34);
+  background: #07111f;
   color: #f8fafc;
   cursor: pointer;
   font-size: 16px;

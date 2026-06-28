@@ -5,6 +5,29 @@
   position: relative;
 }
 
+.app-shell.pos-mode {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(245, 181, 46, 0.08), transparent 28%),
+    radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.08), transparent 34%),
+    #06111d;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.pos-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0;
+  min-height: 100vh;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.sandbox-mode .pos-page {
+  min-height: calc(100vh - 42px);
+}
+
 .sandbox-mode {
   padding-top: 42px;
 }
@@ -57,6 +80,12 @@
   pointer-events: none;
 }
 
+.pos-mode .app-version-label {
+  border-color: rgba(255, 255, 255, 0.10);
+  background: #0b1828;
+  color: #b8c0cc;
+}
+
 .support-session-banner {
   display: flex;
   align-items: center;
@@ -69,6 +98,12 @@
   margin: 8px;
   padding: 10px 14px;
   box-shadow: 0 10px 22px rgba(146, 64, 14, 0.12);
+}
+
+.pos-mode .support-session-banner {
+  border-color: rgba(245, 181, 46, 0.48);
+  background: #0b1828;
+  color: #f5b52e;
 }
 
 .support-session-banner div {

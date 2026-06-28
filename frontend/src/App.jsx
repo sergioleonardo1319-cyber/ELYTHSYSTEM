@@ -1434,7 +1434,15 @@ export default function App() {
   // =========================
 
   return (
-    <div className={esSandbox ? "app-shell sandbox-mode" : "app-shell"}>
+    <div
+      className={[
+        "app-shell",
+        esSandbox ? "sandbox-mode" : "",
+        vista === "pos" ? "pos-mode" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
 
       {esSandbox && (
         <div className="sandbox-banner">
@@ -1444,7 +1452,7 @@ export default function App() {
         </div>
       )}
 
-      <div style={{ padding: 8 }}>
+      <div className={vista === "pos" ? "pos-page" : ""} style={vista === "pos" ? undefined : { padding: 8 }}>
 
       <NavbarPOS
         user={user}

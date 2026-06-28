@@ -6,17 +6,17 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  border: 1px solid rgba(212, 175, 55, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 14px;
-  background: #1e293b;
+  background: linear-gradient(180deg, #0f1f32, #07111f);
   box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
   padding: 16px;
 }
 
 .pos-categorias-panel.altura-completa {
   align-self: stretch;
-  min-height: calc(100vh - 190px);
-  max-height: calc(100vh - 190px);
+  min-height: 0;
+  max-height: none;
 }
 
 .pos-categorias-panel h2 {
@@ -41,9 +41,9 @@
   justify-content: center;
   width: 100%;
   min-height: 80px;
-  border: 1px solid rgba(148, 163, 184, .35);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
-  background: #334155;
+  background: #0f1f32;
   color: white;
   cursor: pointer;
   font-size: 15px;
@@ -88,7 +88,7 @@
 }
 
 .pos-categoria-btn:hover {
-  background: #41526a;
+  background: #15283d;
   border-color: rgba(212, 175, 55, 0.5);
   opacity: 1;
   transform: translateY(-1px);

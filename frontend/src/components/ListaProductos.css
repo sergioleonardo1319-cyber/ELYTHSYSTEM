@@ -1,13 +1,14 @@
 .pos-productos-panel {
   min-width: 0;
-  max-height: calc(100vh - 190px);
+  max-height: none;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  border: 1px solid #dbe3ef;
-  background: #f8fafc;
-  border-radius: 12px;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(180deg, #0b1828, #07111f);
+  border-radius: 14px;
+  box-shadow: none;
   padding: 14px;
 }
 
@@ -19,10 +20,10 @@
   align-items: center;
   grid-template-columns: minmax(130px, 1fr) minmax(180px, 290px) 54px;
   gap: 1cm;
-  border: 1px solid rgba(212, 175, 55, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 14px;
-  background: #1e293b;
-  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+  background: linear-gradient(180deg, #0f1f32, #07111f);
+  box-shadow: none;
   margin-bottom: 14px;
   padding: 12px;
 }
@@ -52,8 +53,8 @@
   min-height: 46px;
   border: 1px solid rgba(212, 175, 55, 0.38);
   border-radius: 12px;
-  background: #ffffff;
-  color: #0f172a;
+  background: #0b1828;
+  color: #ffffff;
   font-size: 15px;
   font-weight: 850;
   outline: none;
@@ -72,10 +73,10 @@
   justify-content: center;
   width: 54px;
   height: 46px;
-  border: 1px solid rgba(212, 175, 55, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 13px;
-  background: rgba(15, 23, 42, 0.44);
-  color: #d4af37;
+  background: #0f1f32;
+  color: #f5b52e;
 }
 
 .pos-buscador-menu > svg {
@@ -105,14 +106,14 @@
 .pos-producto-card {
   min-height: 222px;
   overflow: hidden;
-  border: 1px solid #dbe3ef;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 16px;
-  background: #ffffff;
-  color: #0f172a;
+  background: linear-gradient(180deg, #101f31, #081420);
+  color: #ffffff;
   cursor: pointer;
   padding: 10px;
   text-align: left;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+  box-shadow: none;
   transition:
     border-color 180ms ease,
     transform 180ms ease,
@@ -120,9 +121,9 @@
 }
 
 .pos-producto-card:hover {
-  border-color: rgba(212, 175, 55, 0.72);
+  border-color: rgba(245, 181, 46, 0.72);
   transform: translateY(-2px);
-  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
 }
 
 .pos-producto-card.deshabilitado {
@@ -135,9 +136,9 @@
   align-items: center;
   justify-content: center;
   aspect-ratio: 1 / 0.82;
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  background: #ffffff;
+  background: transparent;
   padding: 8px;
 }
 
@@ -155,7 +156,7 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: #d4af37;
+  background: #f5b52e;
   color: #111827;
   font-size: 28px;
   font-weight: 950;
@@ -170,7 +171,7 @@
 
 .pos-producto-info strong {
   min-height: 42px;
-  color: #0f172a;
+  color: #ffffff;
   font-size: 19px;
   font-weight: 950;
   line-height: 1.12;
@@ -178,14 +179,14 @@
 }
 
 .pos-producto-info b {
-  color: #047857;
+  color: #f5b52e;
   font-size: 24px;
   font-weight: 950;
   line-height: 1;
 }
 
 .pos-producto-info small {
-  color: #64748b;
+  color: #b8c0cc;
   font-size: 15px;
   font-weight: 850;
 }

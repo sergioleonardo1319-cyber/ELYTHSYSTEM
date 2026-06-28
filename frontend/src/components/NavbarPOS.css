@@ -1,15 +1,15 @@
 .nav-pos {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 20;
   display: flex;
   align-items: center;
   gap: 18px;
-  min-height: 74px;
-  border-bottom: 1px solid #dbe3ef;
-  background: rgba(255, 255, 255, .96);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, .08);
-  padding: 12px 24px;
+  min-height: 82px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #0b1828, #07111f);
+  box-shadow: none;
+  padding: 12px 16px;
 }
 
 .nav-pos-marca {
@@ -17,7 +17,7 @@
   align-items: center;
   gap: 10px;
   flex: 0 0 auto;
-  color: #0f172a;
+  color: #ffffff;
   min-width: 190px;
   white-space: nowrap;
 }
@@ -45,7 +45,7 @@
 }
 
 .nav-pos-titulos strong {
-  color: #0f172a;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 950;
   line-height: 1.05;
@@ -56,7 +56,7 @@
 }
 
 .nav-pos-titulos small {
-  color: #64748b;
+  color: #f5b52e;
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
@@ -101,7 +101,7 @@
 
 .nav-pos-grupo-btn {
   background: transparent;
-  color: #334155;
+  color: #ffffff;
   gap: 9px;
 }
 
@@ -112,7 +112,7 @@
 }
 
 .nav-pos-grupo-btn span {
-  color: #64748b;
+  color: #b8c0cc;
   font-size: 10px;
   font-weight: 950;
   transform: translateY(1px);
@@ -121,14 +121,14 @@
 .nav-pos-grupo-btn:hover,
 .nav-pos-grupo:focus-within .nav-pos-grupo-btn,
 .nav-pos-grupo:hover .nav-pos-grupo-btn {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
+  background: #0f1f32;
+  border-color: rgba(245, 181, 46, 0.42);
+  color: #ffffff;
   opacity: 1;
 }
 
 .nav-pos-grupo.activo .nav-pos-grupo-btn {
-  background: #1e293b;
+  background: #0f1f32;
   border-color: rgba(212, 175, 55, 0.62);
   color: white;
   box-shadow: 0 12px 22px rgba(15, 23, 42, .18);
@@ -139,8 +139,8 @@
 }
 
 .nav-pos-menu {
-  background: #fff;
-  border: 1px solid #dbe3ef;
+  background: #0b1828;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
   box-shadow: 0 18px 40px rgba(15, 23, 42, .18);
   display: none;
@@ -159,9 +159,9 @@
 }
 
 .nav-pos-menu-item {
-  background: #fff;
+  background: #0b1828;
   border-color: transparent;
-  color: #334155;
+  color: #ffffff;
   justify-content: flex-start;
   min-height: 40px;
   padding: 0 12px;
@@ -169,21 +169,21 @@
 }
 
 .nav-pos-menu-item:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
+  background: #0f1f32;
+  border-color: rgba(245, 181, 46, 0.42);
+  color: #ffffff;
 }
 
 .nav-pos-menu-item.activo {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background: #0f1f32;
+  border-color: rgba(245, 181, 46, 0.55);
+  color: #f5b52e;
 }
 
 .nav-pos-logout {
-  background: #fff1f2;
-  border-color: #fecdd3;
-  color: #be123c;
+  background: #0f1f32;
+  border-color: rgba(245, 181, 46, 0.32);
+  color: #ffffff;
 }
 
 .nav-pos-actions {
@@ -200,10 +200,10 @@
   justify-content: center;
   gap: 7px;
   min-height: 36px;
-  border: 1px solid #dbe3ef;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 999px;
-  background: #f8fafc;
-  color: #334155;
+  background: #0f1f32;
+  color: #ffffff;
   font-size: 12px;
   font-weight: 900;
   max-width: 150px;
@@ -225,10 +225,10 @@
   align-items: center;
   justify-content: center;
   min-height: 34px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 999px;
-  background: #f8fafc;
-  color: #475569;
+  background: #0f1f32;
+  color: #ffffff;
   font-size: 12px;
   font-weight: 950;
   letter-spacing: 0.02em;
@@ -238,9 +238,9 @@
 }
 
 .nav-pos-device.sunmi {
-  border-color: #bbf7d0;
-  background: #ecfdf5;
-  color: #047857;
+  border-color: rgba(53, 208, 92, 0.5);
+  background: #0f1f32;
+  color: #35d05c;
 }
 
 .nav-pos-notificaciones {
@@ -250,15 +250,15 @@
   height: 42px;
   min-height: 42px;
   border-radius: 999px;
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
+  background: #0f1f32;
+  border-color: rgba(245, 181, 46, 0.32);
+  color: #f5b52e;
   padding: 0;
 }
 
 .nav-pos-notificaciones:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
+  background: #15283d;
+  border-color: rgba(245, 181, 46, 0.5);
 }
 
 .nav-pos-notificaciones svg {
@@ -277,7 +277,7 @@
   height: 19px;
   border-radius: 999px;
   background: #ef4444;
-  border: 2px solid white;
+  border: 2px solid #07111f;
   color: white;
   font-size: 10px;
   font-weight: 950;
@@ -287,8 +287,8 @@
 }
 
 .nav-pos-logout:hover {
-  background: #ffe4e6;
-  border-color: #fda4af;
+  background: #15283d;
+  border-color: rgba(245, 181, 46, 0.5);
   opacity: 1;
 }
 
@@ -316,7 +316,7 @@
   max-height: 86vh;
   overflow: auto;
   border-radius: 18px;
-  background: white;
+  background: linear-gradient(180deg, #0b1828, #07111f);
   box-shadow: 0 24px 80px rgba(15, 23, 42, .35);
   padding: 24px;
 }
@@ -331,7 +331,7 @@
 
 .nav-pos-modal-header span {
   display: block;
-  color: #2563eb;
+  color: #f5b52e;
   font-size: 12px;
   font-weight: 950;
   letter-spacing: .08em;
@@ -340,14 +340,14 @@
 }
 
 .nav-pos-modal-header h2 {
-  color: #0f172a;
+  color: #ffffff;
   font-size: 26px;
   line-height: 1.1;
   margin: 0;
 }
 
 .nav-pos-modal-header p {
-  color: #64748b;
+  color: #b8c0cc;
   font-size: 14px;
   font-weight: 800;
   line-height: 1.35;
@@ -360,8 +360,8 @@
   height: 42px;
   border: none;
   border-radius: 999px;
-  background: #e2e8f0;
-  color: #0f172a;
+  background: #0f1f32;
+  color: #ffffff;
   cursor: pointer;
   font-size: 20px;
   font-weight: 950;
@@ -377,9 +377,9 @@
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 16px;
-  border: 1px solid #dbeafe;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 14px;
-  background: #f8fbff;
+  background: #0f1f32;
   padding: 14px;
 }
 
