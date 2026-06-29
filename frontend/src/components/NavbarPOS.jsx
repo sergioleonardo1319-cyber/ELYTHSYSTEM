@@ -4,10 +4,11 @@ import {
   Bell,
   BadgeDollarSign,
   Boxes,
+  ChevronDown,
+  CircleUserRound,
   LogOut,
   ReceiptText,
   Store,
-  UserRound,
 } from "lucide-react";
 import "./NavbarPOS.css";
 import { API } from "../config";
@@ -164,18 +165,18 @@ export default function NavbarPOS({
     grupo.items.some((item) => item.vista === vista);
 
   return (
-    <nav className="nav-pos">
-      <div className="nav-pos-marca">
-        <span className="nav-pos-logo">
+    <nav className="nav-pos pos-header">
+      <div className="nav-pos-marca header-brand">
+        <span className="nav-pos-logo brand-logo">
           {inicialesEmpresa || "POS"}
         </span>
-        <span className="nav-pos-titulos">
-          <strong>{nombreEmpresa}</strong>
-          <small>Powered by ELYTH SYSTEMS</small>
+        <span className="nav-pos-titulos brand-text">
+          <strong className="brand-name">{nombreEmpresa}</strong>
+          <small className="brand-powered">Powered by ELYTH SYSTEMS</small>
         </span>
       </div>
 
-      <div className="nav-pos-links">
+      <div className="nav-pos-links header-navigation">
         {grupos.map((grupo) => {
           const Icono = grupo.Icono || Boxes;
 
@@ -190,16 +191,18 @@ export default function NavbarPOS({
             >
               <button
                 type="button"
-                className="nav-pos-grupo-btn"
+                className="nav-pos-grupo-btn nav-button"
                 onClick={() => {
                   if (grupo.items.length === 1) {
                     setVista(grupo.items[0].vista);
                   }
                 }}
               >
-                <Icono aria-hidden="true" />
-                {grupo.label}
-                {grupo.items.length > 1 && <span>v</span>}
+                <Icono className="nav-icon" aria-hidden="true" />
+                <span>{grupo.label}</span>
+                {grupo.items.length > 1 && (
+                  <ChevronDown className="nav-chevron" aria-hidden="true" />
+                )}
               </button>
 
               {grupo.items.length > 1 && (
@@ -225,20 +228,32 @@ export default function NavbarPOS({
         })}
       </div>
 
-      <div className="nav-pos-actions">
-        <span className="nav-pos-status-pill">
-          <Store aria-hidden="true" />
-          Sucursal
+      <div className="nav-pos-actions header-actions">
+        <span className="nav-pos-status-pill header-card">
+          <Store className="header-card-icon" aria-hidden="true" />
+          <span className="header-card-text">
+            <span className="header-card-label">Sucursal</span>
+            <span className="header-card-value">Sucursal Central</span>
+          </span>
+          <ChevronDown className="header-card-chevron" aria-hidden="true" />
         </span>
 
-        <span className="nav-pos-status-pill">
-          <ReceiptText aria-hidden="true" />
-          Caja
+        <span className="nav-pos-status-pill header-card">
+          <ReceiptText className="header-card-icon" aria-hidden="true" />
+          <span className="header-card-text">
+            <span className="header-card-label">Caja</span>
+            <span className="header-card-value">Caja 1</span>
+          </span>
+          <ChevronDown className="header-card-chevron" aria-hidden="true" />
         </span>
 
-        <span className="nav-pos-status-pill">
-          <UserRound aria-hidden="true" />
-          {user?.nombre || "Usuario"}
+        <span className="nav-pos-status-pill header-card user-card">
+          <CircleUserRound className="header-card-icon" aria-hidden="true" />
+          <span className="header-card-text">
+            <span className="header-card-label">{user?.rol || "Usuario"}</span>
+            <span className="header-card-value">{user?.nombre || "Usuario"}</span>
+          </span>
+          <ChevronDown className="header-card-chevron" aria-hidden="true" />
         </span>
 
         {(dispositivoPOS?.esSunmi || dispositivoPOS?.esPOSAndroid) && (
@@ -261,7 +276,7 @@ export default function NavbarPOS({
         {user?.rol !== "superadmin" && (
           <button
             type="button"
-            className="nav-pos-notificaciones"
+            className="nav-pos-notificaciones header-icon-button"
             aria-label="Ver notificaciones"
             title="Notificaciones"
             onClick={() => {
@@ -277,11 +292,11 @@ export default function NavbarPOS({
         )}
 
         <button
-          className="nav-pos-logout"
+          className="nav-pos-logout logout-button"
           onClick={logout}
         >
           <LogOut aria-hidden="true" />
-          Cerrar sesion
+          <span>Cerrar sesion</span>
         </button>
       </div>
 
