@@ -1,48 +1,88 @@
 .pos-status-bar {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-  min-height: 70px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-height: 72px;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 14px;
   background: linear-gradient(180deg, #0b1828, #07111f);
-  box-shadow: none;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, .18);
   margin: 0;
-  padding: 10px 14px;
+  padding: 0 18px;
+  overflow: hidden;
 }
 
 .pos-status-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
+  gap: 10px;
+  min-width: 145px;
   color: #b8c0cc;
-  font-size: 12px;
-  font-weight: 850;
-  line-height: 1;
+  line-height: 1.15;
 }
 
 .pos-status-item svg {
   flex: 0 0 auto;
-  width: 17px;
-  height: 17px;
+  width: 22px;
+  height: 22px;
   color: #f5b52e;
 }
 
-.pos-status-item span,
+.pos-status-item div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pos-status-item span {
+  color: #b8c0cc;
+  font-size: 12px;
+  font-weight: 750;
+}
+
 .pos-status-item strong {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.pos-status-item span,
+.pos-status-item strong,
+.pos-status-env {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pos-status-item strong {
-  color: #ffffff;
-  font-weight: 950;
+.pos-status-item.status-ok strong {
+  color: #35d05c;
+}
+
+.pos-status-env {
+  margin-left: auto;
+  max-width: 170px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .06);
+  color: #b8c0cc;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 7px 12px;
+  text-transform: uppercase;
 }
 
 @media (max-width: 900px) {
   .pos-status-bar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .pos-status-item {
+    flex: 1 1 150px;
+  }
+
+  .pos-status-env {
+    margin-left: 0;
   }
 }

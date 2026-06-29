@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import {
   BarChart3,
+  Bell,
+  BadgeDollarSign,
   Boxes,
-  CircleUserRound,
+  LogOut,
   ReceiptText,
   Store,
+  UserRound,
 } from "lucide-react";
 import "./NavbarPOS.css";
 import { API } from "../config";
@@ -122,7 +125,7 @@ export default function NavbarPOS({
     if (posItems.length > 0) {
       grupos.push({
         label: "POS",
-        Icono: ReceiptText,
+        Icono: BadgeDollarSign,
         items: posItems,
       });
     }
@@ -234,7 +237,7 @@ export default function NavbarPOS({
         </span>
 
         <span className="nav-pos-status-pill">
-          <CircleUserRound aria-hidden="true" />
+          <UserRound aria-hidden="true" />
           {user?.nombre || "Usuario"}
         </span>
 
@@ -266,24 +269,7 @@ export default function NavbarPOS({
               setMostrarNotificaciones(true);
             }}
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M18 9.5C18 6.5 15.7 4 12.7 3.6V2.8C12.7 2.4 12.4 2 12 2C11.6 2 11.3 2.4 11.3 2.8V3.6C8.3 4 6 6.5 6 9.5V13.1L4.7 15.8C4.5 16.2 4.5 16.6 4.8 16.9C5 17.3 5.4 17.5 5.8 17.5H18.2C18.6 17.5 19 17.3 19.2 16.9C19.5 16.6 19.5 16.2 19.3 15.8L18 13.1V9.5Z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M9.7 19C10.1 20.2 11 21 12 21C13 21 13.9 20.2 14.3 19"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
+            <Bell aria-hidden="true" />
             {cumpleaneros.length > 0 && (
               <span>{cumpleaneros.length}</span>
             )}
@@ -294,6 +280,7 @@ export default function NavbarPOS({
           className="nav-pos-logout"
           onClick={logout}
         >
+          <LogOut aria-hidden="true" />
           Cerrar sesion
         </button>
       </div>

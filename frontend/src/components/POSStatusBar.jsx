@@ -5,7 +5,7 @@ import {
   Info,
   ReceiptText,
 } from "lucide-react";
-import { APP_VERSION } from "../config";
+import { APP_VERSION, getSelectedEnvironment } from "../config";
 import "./POSStatusBar.css";
 
 export default function POSStatusBar({ cajaActual }) {
@@ -20,6 +20,7 @@ export default function POSStatusBar({ cajaActual }) {
     minute: "2-digit",
     second: "2-digit",
   });
+  const ambiente = getSelectedEnvironment() === "sandbox" ? "Sandbox" : "Productivo";
 
   const items = [
     {
@@ -52,12 +53,25 @@ export default function POSStatusBar({ cajaActual }) {
   return (
     <footer className="pos-status-bar">
       {items.map(({ Icono, label, value }) => (
-        <div className="pos-status-item" key={label}>
+        <div
+          className={
+            label === "Servidor OK"
+              ? "pos-status-item status-ok"
+              : "pos-status-item"
+          }
+          key={label}
+        >
           <Icono aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
+          <div>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </div>
         </div>
       ))}
+
+      <span className="pos-status-env">
+        {ambiente} · v{APP_VERSION}
+      </span>
     </footer>
   );
 }
