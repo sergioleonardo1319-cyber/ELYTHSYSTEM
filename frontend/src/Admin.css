@@ -284,6 +284,35 @@
   padding: 8px 12px;
 }
 
+.admin-password-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  width: 100%;
+}
+
+.admin-password-control input {
+  min-width: 0;
+}
+
+.admin-password-control button {
+  min-width: 82px;
+  min-height: 42px;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 950;
+  padding: 0 12px;
+}
+
+.admin-password-control button:hover {
+  background: #dbeafe;
+  opacity: 1;
+}
+
 .admin-field input:focus,
 .admin-field select:focus {
   border-color: #2563eb;

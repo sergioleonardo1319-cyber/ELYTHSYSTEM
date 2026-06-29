@@ -45,6 +45,7 @@ export default function Admin({ onImpersonar }) {
     rol: "cajero",
     empresa_id: "",
   });
+  const [mostrarPasswordUsuario, setMostrarPasswordUsuario] = useState(false);
 
   const plantillas = {
     productos: [
@@ -1063,16 +1064,27 @@ export default function Admin({ onImpersonar }) {
 
             <label className="admin-field">
               <span>Password</span>
-              <input
-                type="password"
-                value={usuario.password}
-                onChange={(e) =>
-                  setUsuario({
-                    ...usuario,
-                    password: e.target.value,
-                  })
-                }
-              />
+              <div className="admin-password-control">
+                <input
+                  type={mostrarPasswordUsuario ? "text" : "password"}
+                  value={usuario.password}
+                  onChange={(e) =>
+                    setUsuario({
+                      ...usuario,
+                      password: e.target.value,
+                    })
+                  }
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMostrarPasswordUsuario((actual) => !actual)
+                  }
+                >
+                  {mostrarPasswordUsuario ? "Ocultar" : "Ver"}
+                </button>
+              </div>
             </label>
 
             <label className="admin-field">
