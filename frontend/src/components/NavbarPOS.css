@@ -215,6 +215,12 @@
   justify-content: flex-end;
 }
 
+.nav-pos-user-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .nav-pos-status-pill {
   display: inline-flex;
   align-items: center;
@@ -279,6 +285,85 @@
   color: #ffffff !important;
   opacity: .8;
   margin-left: 4px;
+}
+
+.user-card {
+  min-width: 184px;
+}
+
+.nav-pos-user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 80;
+  display: grid;
+  gap: 10px;
+  width: min(260px, 78vw);
+  border: 1px solid rgba(245, 181, 46, .35);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #0b1828, #07111f);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .42);
+  padding: 12px;
+}
+
+.nav-pos-user-summary {
+  display: grid;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, .10);
+  padding: 4px 4px 12px;
+}
+
+.nav-pos-user-summary strong {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-pos-user-summary span {
+  color: #f5b52e;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.nav-pos-user-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  border: 1px solid rgba(245, 181, 46, .38);
+  border-radius: 12px;
+  background: rgba(245, 181, 46, .06);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 0 12px;
+  text-align: left;
+  transition:
+    background .16s ease,
+    border-color .16s ease,
+    transform .16s ease;
+}
+
+.nav-pos-user-logout svg {
+  width: 19px;
+  height: 19px;
+  color: #f5b52e;
+  stroke-width: 2;
+}
+
+.nav-pos-user-logout:hover {
+  border-color: #f5b52e;
+  background: rgba(245, 181, 46, .12);
+  opacity: 1;
+  transform: translateY(-1px);
 }
 
 .nav-pos-device {
@@ -535,6 +620,11 @@
     display: none;
   }
 
+  .user-card .header-card-value {
+    display: block;
+    max-width: 96px;
+  }
+
   .nav-pos-status-pill {
     min-width: 52px;
     padding: 0 12px;
@@ -581,6 +671,19 @@
     gap: 12px;
     margin-left: 0;
     flex-wrap: wrap;
+  }
+
+  .nav-pos-user-menu {
+    flex: 1 1 220px;
+  }
+
+  .user-card {
+    width: 100%;
+  }
+
+  .nav-pos-user-dropdown {
+    left: 0;
+    right: auto;
   }
 
   .nav-pos-notificaciones {

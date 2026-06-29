@@ -22,6 +22,7 @@ export default function NavbarPOS({
 }) {
   const [cumpleaneros, setCumpleaneros] = useState([]);
   const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
+  const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
 
   const cargarCumpleaneros = async () => {
     if (!user?.empresa_id || user?.rol === "superadmin") return;
@@ -247,14 +248,39 @@ export default function NavbarPOS({
           <ChevronDown className="header-card-chevron" aria-hidden="true" />
         </span>
 
-        <span className="nav-pos-status-pill header-card user-card">
-          <CircleUserRound className="header-card-icon" aria-hidden="true" />
-          <span className="header-card-text">
-            <span className="header-card-label">{user?.rol || "Usuario"}</span>
-            <span className="header-card-value">{user?.nombre || "Usuario"}</span>
-          </span>
-          <ChevronDown className="header-card-chevron" aria-hidden="true" />
-        </span>
+        <div className="nav-pos-user-menu">
+          <button
+            type="button"
+            className="nav-pos-status-pill header-card user-card"
+            aria-expanded={mostrarMenuUsuario}
+            onClick={() => setMostrarMenuUsuario((actual) => !actual)}
+          >
+            <CircleUserRound className="header-card-icon" aria-hidden="true" />
+            <span className="header-card-text">
+              <span className="header-card-label">{user?.rol || "Usuario"}</span>
+              <span className="header-card-value">{user?.nombre || "Usuario"}</span>
+            </span>
+            <ChevronDown className="header-card-chevron" aria-hidden="true" />
+          </button>
+
+          {mostrarMenuUsuario && (
+            <div className="nav-pos-user-dropdown">
+              <div className="nav-pos-user-summary">
+                <strong>{user?.nombre || "Usuario"}</strong>
+                <span>{user?.rol || "Sin rol"}</span>
+              </div>
+
+              <button
+                type="button"
+                className="nav-pos-user-logout"
+                onClick={logout}
+              >
+                <LogOut aria-hidden="true" />
+                Cerrar sesion
+              </button>
+            </div>
+          )}
+        </div>
 
         {(dispositivoPOS?.esSunmi || dispositivoPOS?.esPOSAndroid) && (
           <span
@@ -291,13 +317,6 @@ export default function NavbarPOS({
           </button>
         )}
 
-        <button
-          className="nav-pos-logout logout-button"
-          onClick={logout}
-        >
-          <LogOut aria-hidden="true" />
-          <span>Cerrar sesion</span>
-        </button>
       </div>
 
       {mostrarNotificaciones && (
