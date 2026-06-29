@@ -6,7 +6,8 @@
 }
 
 .app-shell.pos-mode {
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at 20% 0%, rgba(245, 181, 46, 0.08), transparent 28%),
     radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.08), transparent 34%),
@@ -18,14 +19,17 @@
 .pos-page {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 0;
-  min-height: 100vh;
-  padding: 14px;
+  gap: 10px;
+  height: 100dvh;
+  min-height: 0;
+  padding: 10px 14px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .sandbox-mode .pos-page {
-  min-height: calc(100vh - 42px);
+  height: calc(100dvh - 42px);
+  min-height: 0;
 }
 
 .sandbox-mode {
