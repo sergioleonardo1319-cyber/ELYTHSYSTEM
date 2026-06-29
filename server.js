@@ -2600,7 +2600,7 @@ app.post(
       empresa_id,
     } = req.body;
     const usuarioLoginFinal = String(usuario_login || "").trim();
-    const emailFinal = String(email || "").trim();
+    const emailFinal = String(email || "").trim() || null;
 
     const rolesValidos = [
       "admin",
@@ -2698,6 +2698,15 @@ app.post(
   } catch (error) {
 
     console.error(error);
+
+    if (error.code === "23505") {
+      return res.status(400).json({
+        error:
+          error.constraint === "usuarios_email_key"
+            ? "El correo ya existe"
+            : "El usuario ya existe",
+      });
+    }
 
     res.status(500).json({
       error: error.message,
@@ -2821,7 +2830,7 @@ app.post(
       for (const fila of filas) {
         const nombre = String(fila.nombre || "").trim();
         const usuarioLogin = String(fila.usuario_login || fila.usuario || "").trim();
-        const email = String(fila.email || "").trim();
+        const email = String(fila.email || "").trim() || null;
         const password = String(fila.password || "").trim();
         const rol = String(fila.rol || "cajero").trim();
 
