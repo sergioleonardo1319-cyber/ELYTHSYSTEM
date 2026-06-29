@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./ModalComplementos.css";
 
 export default function ModalComplementos({
@@ -10,6 +10,12 @@ export default function ModalComplementos({
   const [seleccion, setSeleccion] = useState({});
   const [error, setError] = useState("");
   const [observacion, setObservacion] = useState("");
+
+  useEffect(() => {
+    setSeleccion({});
+    setError("");
+    setObservacion("");
+  }, [producto?.id, grupos]);
 
   const requierePreparacion = Boolean(
     String(producto?.departamento || "").trim() &&
