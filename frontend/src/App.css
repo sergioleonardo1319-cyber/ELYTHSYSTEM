@@ -68,28 +68,6 @@
   opacity: 0.96;
 }
 
-.app-version-label {
-  position: fixed;
-  right: 12px;
-  bottom: 8px;
-  z-index: 1200;
-  padding: 5px 9px;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.86);
-  color: #475569;
-  font-size: 11px;
-  font-weight: 800;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-  pointer-events: none;
-}
-
-.pos-mode .app-version-label {
-  border-color: rgba(255, 255, 255, 0.10);
-  background: #0b1828;
-  color: #b8c0cc;
-}
-
 .support-session-banner {
   display: flex;
   align-items: center;

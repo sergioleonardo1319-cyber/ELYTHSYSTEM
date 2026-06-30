@@ -30,7 +30,6 @@ import {
   API,
   APP_VERSION,
   clearSelectedEnvironment,
-  ENVIRONMENT_OPTIONS,
   getSelectedEnvironment,
 } from "./config";
 import {
@@ -1369,8 +1368,6 @@ export default function App() {
 
   const ambienteActual = getSelectedEnvironment();
   const esSandbox = ambienteActual === "sandbox";
-  const ambienteLabel =
-    ENVIRONMENT_OPTIONS[ambienteActual]?.label || "Productivo";
   const usarCategoriasAlturaCompleta =
     featuresEmpresa.pos_categorias_altura_completa === true;
 
@@ -1420,10 +1417,6 @@ export default function App() {
         </div>
 
         <Admin onImpersonar={entrarComoSoporte} />
-
-        <div className="app-version-label">
-          {ambienteLabel.toUpperCase()} · v{APP_VERSION}
-        </div>
 
       </div>
     );
@@ -1708,10 +1701,6 @@ export default function App() {
         mensaje={aviso?.mensaje}
         onCerrar={() => setAviso(null)}
       />
-
-      <div className="app-version-label">
-        {ambienteLabel.toUpperCase()} · v{APP_VERSION}
-      </div>
 
       </div>
 
