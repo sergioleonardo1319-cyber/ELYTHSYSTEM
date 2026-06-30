@@ -165,7 +165,7 @@
   overflow: hidden;
   border: none;
   border-radius: 10px;
-  background: #ffffff;
+  background: transparent;
   margin-bottom: 12px;
   padding: 0;
 }
@@ -176,6 +176,8 @@
   max-height: 86%;
   object-fit: contain;
   object-position: center;
+  background: transparent;
+  mix-blend-mode: normal;
 }
 
 .pos-producto-imagen span {
