@@ -1,7 +1,8 @@
 .pos-status-bar {
   display: flex;
   align-items: center;
-  gap: 28px;
+  justify-content: space-around;
+  gap: 18px;
   min-height: 72px;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 14px;
@@ -15,16 +16,18 @@
 .pos-status-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 145px;
+  justify-content: center;
+  gap: 12px;
+  flex: 1 1 0;
+  min-width: 0;
   color: #b8c0cc;
   line-height: 1.15;
 }
 
 .pos-status-item svg {
   flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   color: #f5b52e;
 }
 
@@ -32,6 +35,7 @@
   display: grid;
   gap: 4px;
   min-width: 0;
+  text-align: left;
 }
 
 .pos-status-item span {
@@ -47,8 +51,7 @@
 }
 
 .pos-status-item span,
-.pos-status-item strong,
-.pos-status-env {
+.pos-status-item strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -56,18 +59,6 @@
 
 .pos-status-item.status-ok strong {
   color: #35d05c;
-}
-
-.pos-status-env {
-  margin-left: auto;
-  max-width: 170px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .06);
-  color: #b8c0cc;
-  font-size: 12px;
-  font-weight: 900;
-  padding: 7px 12px;
-  text-transform: uppercase;
 }
 
 @media (max-width: 900px) {
@@ -80,9 +71,5 @@
 
   .pos-status-item {
     flex: 1 1 150px;
-  }
-
-  .pos-status-env {
-    margin-left: 0;
   }
 }

@@ -46,7 +46,7 @@ export default function POSStatusBar({ cajaActual }) {
     {
       Icono: Info,
       label: "Version",
-      value: APP_VERSION,
+      value: `${ambiente} · ${APP_VERSION}`,
     },
   ];
 
@@ -69,9 +69,6 @@ export default function POSStatusBar({ cajaActual }) {
         </div>
       ))}
 
-      <span className="pos-status-env">
-        {ambiente} · v{APP_VERSION}
-      </span>
     </footer>
   );
 }
