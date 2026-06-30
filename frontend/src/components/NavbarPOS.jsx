@@ -7,7 +7,6 @@ import {
   ChevronDown,
   CircleUserRound,
   LogOut,
-  ReceiptText,
   Store,
 } from "lucide-react";
 import "./NavbarPOS.css";
@@ -235,15 +234,6 @@ export default function NavbarPOS({
           <span className="header-card-text">
             <span className="header-card-label">Sucursal</span>
             <span className="header-card-value">Sucursal Central</span>
-          </span>
-          <ChevronDown className="header-card-chevron" aria-hidden="true" />
-        </span>
-
-        <span className="nav-pos-status-pill header-card">
-          <ReceiptText className="header-card-icon" aria-hidden="true" />
-          <span className="header-card-text">
-            <span className="header-card-label">Caja</span>
-            <span className="header-card-value">Caja 1</span>
           </span>
           <ChevronDown className="header-card-chevron" aria-hidden="true" />
         </span>
