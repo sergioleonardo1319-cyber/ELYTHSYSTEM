@@ -526,6 +526,109 @@ export default function App() {
       return departamento && departamento !== "NO APLICA";
     });
 
+  const usarImpresionInternaPOS = Boolean(
+    dispositivoPOS?.esCapacitor ||
+    dispositivoPOS?.esPOSAndroid ||
+    dispositivoPOS?.esSunmi
+  );
+
+  const obtenerPuenteImpresionNativa = () => {
+    if (typeof window === "undefined") return null;
+
+    return (
+      window.ElythSunmiPrinter ||
+      window.SunmiPrinter ||
+      window.SUNMIPrinter ||
+      window.SUNMI ||
+      null
+    );
+  };
+
+  const imprimirHtmlInternoPOS = (html) => {
+    const puente = obtenerPuenteImpresionNativa();
+
+    try {
+      if (puente && typeof puente.printHtml === "function") {
+        puente.printHtml(html);
+        return true;
+      }
+
+      if (puente && typeof puente.print === "function") {
+        puente.print(html);
+        return true;
+      }
+    } catch (error) {
+      console.error("Error usando impresora nativa POS:", error);
+    }
+
+    const iframe = document.createElement("iframe");
+    iframe.title = "Impresion POS";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "1px";
+    iframe.style.height = "1px";
+    iframe.style.border = "0";
+    iframe.style.opacity = "0";
+    iframe.style.pointerEvents = "none";
+    document.body.appendChild(iframe);
+
+    const documento = iframe.contentWindow?.document;
+
+    if (!documento) {
+      iframe.remove();
+      return false;
+    }
+
+    documento.open();
+    documento.write(html);
+    documento.close();
+
+    setTimeout(() => {
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (error) {
+        console.error("Error imprimiendo en WebView POS:", error);
+      }
+
+      setTimeout(() => iframe.remove(), 1800);
+    }, 350);
+
+    return true;
+  };
+
+  const crearDestinoImpresion = (ventanaDestino = null) => {
+    if (ventanaDestino) return ventanaDestino;
+
+    if (usarImpresionInternaPOS) {
+      let html = "";
+
+      return {
+        document: {
+          write: (contenido) => {
+            html += contenido;
+          },
+          close: () => {
+            const impreso = imprimirHtmlInternoPOS(html);
+
+            if (!impreso) {
+              setAviso({
+                tipo: "error",
+                titulo: "Impresion no disponible",
+                mensaje:
+                  "No fue posible enviar el documento a impresion desde el dispositivo POS.",
+              });
+            }
+          },
+        },
+        close: () => {},
+      };
+    }
+
+    return window.open("", "_blank");
+  };
+
   // =========================
   // TICKET
   // =========================
@@ -537,7 +640,7 @@ export default function App() {
     ventanaDestino = null
   ) => {
 
-    const ventana = ventanaDestino || window.open("", "_blank");
+    const ventana = crearDestinoImpresion(ventanaDestino);
 
     if (!ventana) {
       setAviso({
@@ -927,7 +1030,7 @@ export default function App() {
   };
 
   const imprimirComanda = (venta, ventanaDestino = null) => {
-    const ventana = ventanaDestino || window.open("", "_blank");
+    const ventana = crearDestinoImpresion(ventanaDestino);
 
     if (!ventana) {
       setAviso({
@@ -1045,7 +1148,7 @@ export default function App() {
     venta,
     ventanaDestino = null
   ) => {
-    const ventana = ventanaDestino || window.open("", "_blank");
+    const ventana = crearDestinoImpresion(ventanaDestino);
 
     if (!ventana) {
       setAviso({
@@ -1616,7 +1719,10 @@ export default function App() {
             datosPago.tipo_comprobante !== "Credito";
           const debeImprimirAmbosAuto =
             debeImprimirFacturaAuto && debeImprimirComandaAuto;
-          const ventanaAuto = debeImprimirFacturaAuto || debeImprimirComandaAuto
+          const abrirVentanaAuto =
+            !usarImpresionInternaPOS &&
+            (debeImprimirFacturaAuto || debeImprimirComandaAuto);
+          const ventanaAuto = abrirVentanaAuto
             ? window.open("", "_blank")
             : null;
 

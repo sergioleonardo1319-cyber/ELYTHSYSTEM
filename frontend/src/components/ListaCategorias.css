@@ -125,3 +125,40 @@
     font-size: 16px;
   }
 }
+
+body.pos-device-android .pos-categorias-panel,
+body.pos-device-sunmi .pos-categorias-panel,
+body.pos-device-sunmi-d3 .pos-categorias-panel {
+  border-radius: 10px;
+  padding: 12px;
+}
+
+body.pos-device-android .pos-categorias-panel h2,
+body.pos-device-sunmi .pos-categorias-panel h2,
+body.pos-device-sunmi-d3 .pos-categorias-panel h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+body.pos-device-android .pos-categoria-btn,
+body.pos-device-sunmi .pos-categoria-btn,
+body.pos-device-sunmi-d3 .pos-categoria-btn {
+  min-height: 58px;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 9px;
+}
+
+body.pos-device-android .pos-categoria-icono,
+body.pos-device-sunmi .pos-categoria-icono,
+body.pos-device-sunmi-d3 .pos-categoria-icono {
+  flex-basis: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+body.pos-device-android .pos-categoria-nombre,
+body.pos-device-sunmi .pos-categoria-nombre,
+body.pos-device-sunmi-d3 .pos-categoria-nombre {
+  font-size: 15px;
+}

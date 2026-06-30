@@ -258,3 +258,79 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+body.pos-device-android .pos-productos-panel,
+body.pos-device-sunmi .pos-productos-panel,
+body.pos-device-sunmi-d3 .pos-productos-panel {
+  border-radius: 10px;
+}
+
+body.pos-device-android .pos-productos-header,
+body.pos-device-sunmi .pos-productos-header,
+body.pos-device-sunmi-d3 .pos-productos-header {
+  min-height: 54px;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+body.pos-device-android .pos-productos-header h2,
+body.pos-device-sunmi .pos-productos-header h2,
+body.pos-device-sunmi-d3 .pos-productos-header h2 {
+  font-size: 22px;
+}
+
+body.pos-device-android .pos-buscador-wrap,
+body.pos-device-sunmi .pos-buscador-wrap,
+body.pos-device-sunmi-d3 .pos-buscador-wrap {
+  width: min(330px, 52vw);
+}
+
+body.pos-device-android .pos-buscador-wrap input,
+body.pos-device-sunmi .pos-buscador-wrap input,
+body.pos-device-sunmi-d3 .pos-buscador-wrap input {
+  height: 42px;
+  font-size: 13px;
+}
+
+body.pos-device-android .pos-productos-grid,
+body.pos-device-sunmi .pos-productos-grid,
+body.pos-device-sunmi-d3 .pos-productos-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+body.pos-device-android .pos-producto-card,
+body.pos-device-sunmi .pos-producto-card,
+body.pos-device-sunmi-d3 .pos-producto-card {
+  min-height: 172px;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+body.pos-device-android .pos-producto-imagen,
+body.pos-device-sunmi .pos-producto-imagen,
+body.pos-device-sunmi-d3 .pos-producto-imagen {
+  height: 118px;
+  margin-bottom: 8px;
+}
+
+body.pos-device-android .pos-producto-info,
+body.pos-device-sunmi .pos-producto-info,
+body.pos-device-sunmi-d3 .pos-producto-info {
+  gap: 4px;
+  padding-top: 6px;
+}
+
+body.pos-device-android .pos-producto-info strong,
+body.pos-device-sunmi .pos-producto-info strong,
+body.pos-device-sunmi-d3 .pos-producto-info strong {
+  min-height: 30px;
+  font-size: 15px;
+}
+
+body.pos-device-android .pos-producto-info b,
+body.pos-device-sunmi .pos-producto-info b,
+body.pos-device-sunmi-d3 .pos-producto-info b {
+  font-size: 18px;
+}

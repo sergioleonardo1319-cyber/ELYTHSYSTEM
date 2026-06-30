@@ -1,6 +1,6 @@
 .nav-pos {
   position: relative;
-  z-index: 20;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -11,6 +11,104 @@
   box-shadow: 0 18px 46px rgba(0, 0, 0, .18);
   padding: 16px 20px;
   overflow: visible;
+}
+
+body.pos-device-android .nav-pos,
+body.pos-device-sunmi .nav-pos,
+body.pos-device-sunmi-d3 .nav-pos {
+  gap: 8px;
+  height: 68px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+body.pos-device-android .nav-pos-marca,
+body.pos-device-sunmi .nav-pos-marca,
+body.pos-device-sunmi-d3 .nav-pos-marca {
+  flex: 0 1 210px;
+  gap: 9px;
+}
+
+body.pos-device-android .nav-pos-logo,
+body.pos-device-sunmi .nav-pos-logo,
+body.pos-device-sunmi-d3 .nav-pos-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+body.pos-device-android .nav-pos-titulos strong,
+body.pos-device-sunmi .nav-pos-titulos strong,
+body.pos-device-sunmi-d3 .nav-pos-titulos strong {
+  max-width: 155px;
+  font-size: 14px;
+}
+
+body.pos-device-android .nav-pos-titulos small,
+body.pos-device-sunmi .nav-pos-titulos small,
+body.pos-device-sunmi-d3 .nav-pos-titulos small {
+  font-size: 8px;
+  letter-spacing: .35px;
+  margin-top: 3px;
+}
+
+body.pos-device-android .nav-pos-links,
+body.pos-device-sunmi .nav-pos-links,
+body.pos-device-sunmi-d3 .nav-pos-links {
+  gap: 6px;
+}
+
+body.pos-device-android .nav-pos-grupo-btn,
+body.pos-device-sunmi .nav-pos-grupo-btn,
+body.pos-device-sunmi-d3 .nav-pos-grupo-btn,
+body.pos-device-android .nav-pos-notificaciones,
+body.pos-device-sunmi .nav-pos-notificaciones,
+body.pos-device-sunmi-d3 .nav-pos-notificaciones {
+  min-height: 42px;
+  border-radius: 10px;
+  font-size: 12px;
+  padding: 0 10px;
+}
+
+body.pos-device-android .nav-pos-grupo-btn svg,
+body.pos-device-sunmi .nav-pos-grupo-btn svg,
+body.pos-device-sunmi-d3 .nav-pos-grupo-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+body.pos-device-android .nav-pos-grupo-btn span,
+body.pos-device-sunmi .nav-pos-grupo-btn span,
+body.pos-device-sunmi-d3 .nav-pos-grupo-btn span {
+  font-size: 12px;
+}
+
+body.pos-device-android .header-card,
+body.pos-device-sunmi .header-card,
+body.pos-device-sunmi-d3 .header-card {
+  min-height: 42px;
+  border-radius: 10px;
+  padding: 7px 9px;
+}
+
+body.pos-device-android .header-card-icon,
+body.pos-device-sunmi .header-card-icon,
+body.pos-device-sunmi-d3 .header-card-icon {
+  width: 18px;
+  height: 18px;
+}
+
+body.pos-device-android .header-card-label,
+body.pos-device-sunmi .header-card-label,
+body.pos-device-sunmi-d3 .header-card-label {
+  font-size: 8px;
+}
+
+body.pos-device-android .header-card-value,
+body.pos-device-sunmi .header-card-value,
+body.pos-device-sunmi-d3 .header-card-value {
+  font-size: 10px;
 }
 
 .nav-pos-marca {

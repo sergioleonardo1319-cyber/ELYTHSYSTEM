@@ -38,7 +38,7 @@
 
 .sandbox-banner {
   position: fixed;
-  z-index: 2000;
+  z-index: 900;
   top: 0;
   left: 0;
   right: 0;
@@ -54,6 +54,47 @@
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0;
+}
+
+.cobro-overlay,
+.cobro-alerta-overlay,
+.complementos-overlay,
+.aviso-overlay,
+.pos-acciones-overlay,
+.pos-modal-overlay,
+.nav-pos-modal-overlay {
+  z-index: 50000 !important;
+}
+
+body.pos-device-android .app-shell.pos-mode,
+body.pos-device-sunmi .app-shell.pos-mode,
+body.pos-device-sunmi-d3 .app-shell.pos-mode {
+  overflow: hidden;
+}
+
+body.pos-device-android .pos-page,
+body.pos-device-sunmi .pos-page,
+body.pos-device-sunmi-d3 .pos-page {
+  gap: 6px;
+  padding: 6px;
+}
+
+body.pos-device-sunmi-d3 .sandbox-mode .pos-page {
+  height: calc(100dvh - 34px);
+}
+
+body.pos-device-sunmi-d3 .sandbox-mode {
+  padding-top: 34px;
+}
+
+body.pos-device-sunmi-d3 .sandbox-banner {
+  min-height: 34px;
+  gap: 8px;
+  font-size: 12px;
+}
+
+body.pos-device-sunmi-d3 .sandbox-banner strong {
+  font-size: 13px;
 }
 
 .sandbox-banner strong {
