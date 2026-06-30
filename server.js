@@ -1457,6 +1457,17 @@ const inicializarContabilidad = async () => {
     `);
 
     await db.query(`
+      ALTER TABLE usuarios
+      ALTER COLUMN email DROP NOT NULL
+    `);
+
+    await db.query(`
+      UPDATE usuarios
+      SET email = NULL
+      WHERE TRIM(COALESCE(email, '')) = ''
+    `);
+
+    await db.query(`
       ALTER TABLE empresas
       ADD COLUMN IF NOT EXISTS imprimir_factura_auto BOOLEAN DEFAULT false
     `);
