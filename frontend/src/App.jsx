@@ -598,6 +598,157 @@ export default function App() {
     return true;
   };
 
+  const anchoTicketTermico = 42;
+
+  const textoPlanoImpresion = (valor) =>
+    String(valor ?? "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const cortarTextoTicket = (valor, largo = anchoTicketTermico) =>
+    textoPlanoImpresion(valor).slice(0, largo);
+
+  const lineaTicket = (caracter = "-") =>
+    caracter.repeat(anchoTicketTermico);
+
+  const centrarTicket = (valor) => {
+    const texto = cortarTextoTicket(valor);
+    const espacio = Math.max(0, Math.floor((anchoTicketTermico - texto.length) / 2));
+    return `${" ".repeat(espacio)}${texto}`;
+  };
+
+  const filaTicket = (label, valor) => {
+    const izquierda = cortarTextoTicket(label, 26);
+    const derecha = cortarTextoTicket(valor, 14);
+    const espacios = Math.max(1, anchoTicketTermico - izquierda.length - derecha.length);
+    return `${izquierda}${" ".repeat(espacios)}${derecha}`;
+  };
+
+  const monedaTicket = (valor) => `Q${Number(valor || 0).toFixed(2)}`;
+
+  const detalleComplementosTicket = (item) => {
+    if (!Array.isArray(item.complementos) || item.complementos.length === 0) {
+      return [];
+    }
+
+    return item.complementos.flatMap((grupo) => {
+      const opciones = (grupo.opciones || [])
+        .map((opcion) => opcion.nombre)
+        .filter(Boolean)
+        .join(", ");
+
+      return opciones
+        ? [`  ${cortarTextoTicket(`${grupo.nombre}: ${opciones}`, 38)}`]
+        : [];
+    });
+  };
+
+  const crearTextoTicketTermico = (datosPago, carritoVenta, venta = null) => {
+    const tipoComprobante = datosPago.tipo_comprobante || "Factura";
+    const esFactura = tipoComprobante === "Factura";
+    const nombreEmpresa = user?.empresa_nombre || user?.empresa || "Mi Empresa";
+    const razonSocial = user?.empresa_razon_social || nombreEmpresa;
+    const nitEmpresa = user?.empresa_nit || "Pendiente";
+    const direccionEmpresa = user?.empresa_direccion || "Pendiente";
+    const fecha = venta?.fecha
+      ? new Date(venta.fecha).toLocaleString()
+      : new Date().toLocaleString();
+    const subtotalDocumento = carritoVenta.reduce(
+      (sum, item) => sum + Number(item.precio || 0) * Number(item.cantidad || 0),
+      0
+    );
+    const descuentoDocumento = Number(datosPago.descuento_monto || 0);
+    const totalDocumento = Number(
+      datosPago.total_final || venta?.total || subtotalDocumento
+    );
+    const ivaIncluido = esFactura ? totalDocumento - totalDocumento / 1.12 : 0;
+    const lineas = [
+      centrarTicket(nombreEmpresa.toUpperCase()),
+      centrarTicket(razonSocial),
+      centrarTicket(`NIT: ${nitEmpresa}`),
+      centrarTicket(direccionEmpresa),
+      lineaTicket("="),
+      centrarTicket(esFactura ? "FACTURA ELECTRONICA" : "RECIBO INTERNO"),
+      filaTicket("Venta", venta?.id || "Pendiente"),
+      filaTicket("Fecha", fecha),
+      lineaTicket("-"),
+      "RECEPTOR",
+      cortarTextoTicket(datosPago.cliente_nit || "CF"),
+      cortarTextoTicket(datosPago.cliente_nombre || "CONSUMIDOR FINAL"),
+      cortarTextoTicket(datosPago.cliente_direccion || "CIUDAD"),
+      lineaTicket("-"),
+    ];
+
+    carritoVenta.forEach((item) => {
+      const cantidad = Number(item.cantidad || 0);
+      const precio = Number(item.precio || 0);
+      lineas.push(cortarTextoTicket(`${cantidad} x ${item.nombre}`, anchoTicketTermico));
+      detalleComplementosTicket(item).forEach((linea) => lineas.push(linea));
+
+      if (item.observacion) {
+        lineas.push(`  ${cortarTextoTicket(`Nota: ${item.observacion}`, 38)}`);
+      }
+
+      lineas.push(filaTicket(`  ${monedaTicket(precio)} c/u`, monedaTicket(precio * cantidad)));
+    });
+
+    lineas.push(
+      lineaTicket("-"),
+      filaTicket("Subtotal", monedaTicket(subtotalDocumento)),
+      filaTicket("Descuento", monedaTicket(descuentoDocumento))
+    );
+
+    if (esFactura) {
+      lineas.push(filaTicket("IVA incluido", monedaTicket(ivaIncluido)));
+    }
+
+    lineas.push(
+      lineaTicket("="),
+      filaTicket("TOTAL", monedaTicket(totalDocumento)),
+      lineaTicket("="),
+      esFactura
+        ? "Documento preliminar sujeto a FEL."
+        : "Recibo interno. No sustituye factura FEL.",
+      centrarTicket("Gracias por su compra")
+    );
+
+    return lineas.join("\n");
+  };
+
+  const crearTextoComandaTermica = (venta) => {
+    const detalle = venta.detalle || [];
+    const fecha = venta.fecha
+      ? new Date(venta.fecha).toLocaleString()
+      : new Date().toLocaleString();
+    const lineas = [
+      centrarTicket("COMANDA"),
+      filaTicket("Venta", venta.id || ""),
+      filaTicket("Fecha", fecha),
+      cortarTextoTicket(venta.cliente_nombre || "Consumidor Final"),
+      lineaTicket("="),
+    ];
+
+    detalle.forEach((item) => {
+      lineas.push(cortarTextoTicket(`${Number(item.cantidad || 0)}x ${item.nombre}`));
+      detalleComplementosTicket(item).forEach((linea) => lineas.push(linea));
+
+      if (item.observacion) {
+        lineas.push(`  ${cortarTextoTicket(`Nota: ${item.observacion}`, 38)}`);
+      }
+    });
+
+    lineas.push(lineaTicket("="), centrarTicket("PREPARACION"));
+
+    return lineas.join("\n");
+  };
+
+  const crearBloqueTextoSunmi = (texto) =>
+    `<script type="text/plain" id="elyth-sunmi-text">${String(texto)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")}</script>`;
+
   const crearDestinoImpresion = (ventanaDestino = null) => {
     if (ventanaDestino) return ventanaDestino;
 
@@ -725,6 +876,7 @@ export default function App() {
           }
         : null,
     ].filter(Boolean);
+    const textoSunmi = crearTextoTicketTermico(datosPago, carritoVenta, venta);
 
     ventana.document.write(`
       <html>
@@ -828,6 +980,7 @@ export default function App() {
           </style>
         </head>
         <body>
+          ${crearBloqueTextoSunmi(textoSunmi)}
           <main class="doc">
             <section class="head">
               <div>
@@ -1054,6 +1207,10 @@ export default function App() {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    const textoSunmi = crearTextoComandaTermica({
+      ...venta,
+      detalle,
+    });
 
     ventana.document.write(`
       <html>
@@ -1071,6 +1228,7 @@ export default function App() {
           </style>
         </head>
         <body>
+          ${crearBloqueTextoSunmi(textoSunmi)}
           <main class="doc">
             <h1>COMANDA</h1>
             <p>Venta #${venta.id}</p>
@@ -1209,6 +1367,14 @@ export default function App() {
             )
             .join("<br>")}</small>`
         : "";
+    const textoSunmi = [
+      crearTextoTicketTermico(datosPago, carritoVenta, venta),
+      crearTextoComandaTermica({
+        ...venta,
+        detalle: detalleComanda,
+        cliente_nombre: clienteComanda,
+      }),
+    ].join("\n\n");
 
     ventana.document.write(`
       <html>
@@ -1243,6 +1409,7 @@ export default function App() {
           </style>
         </head>
         <body>
+          ${crearBloqueTextoSunmi(textoSunmi)}
           <main class="doc">
             <section class="head">
               <h1>${escapeHtml(nombreEmpresa)}</h1>
