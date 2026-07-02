@@ -84,6 +84,26 @@ export default function POSAcciones({
     }
   };
 
+  const normalizarDetalleVenta = (detalle) => {
+    if (Array.isArray(detalle)) return detalle;
+
+    if (typeof detalle === "string") {
+      try {
+        const detalleParseado = JSON.parse(detalle);
+        return Array.isArray(detalleParseado) ? detalleParseado : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  };
+
+  const normalizarVentaImpresion = (venta) => ({
+    ...venta,
+    detalle: normalizarDetalleVenta(venta.detalle),
+  });
+
   const cargarCajaActual = async ({ abrirModal = true } = {}) => {
     const res = await fetch(
       `${API}/caja/turno-actual?empresa_id=${user.empresa_id}`,
@@ -263,7 +283,7 @@ export default function POSAcciones({
     const data = await leerRespuesta(res);
 
     if (res.ok) {
-      setVentas(Array.isArray(data) ? data : []);
+      setVentas(Array.isArray(data) ? data.map(normalizarVentaImpresion) : []);
       setModal("ventas");
     } else {
       setAviso({
@@ -808,66 +828,70 @@ export default function POSAcciones({
                 <p>Transacciones registradas hoy.</p>
 
                 <div className="pos-ventas-lista">
-                  {ventas.map((venta) => (
-                    <div
-                      className={
-                        venta.estado === "anulada"
-                          ? "pos-venta-item anulada"
-                          : "pos-venta-item"
-                      }
-                      key={venta.id}
-                    >
-                      <div>
-                        <strong>Venta #{venta.id}</strong>
-                        <span>
-                          {new Date(venta.fecha).toLocaleTimeString()} - {venta.tipo_comprobante}
-                        </span>
-                        <small>
-                          {venta.cliente_nombre || "Consumidor Final"} - {venta.usuario_nombre || "-"}
-                        </small>
-                        {venta.estado === "anulada" && (
-                          <small className="pos-venta-anulada">
-                            ANULADA - {venta.motivo_anulacion || "Sin motivo"}
+                  {ventas.map((venta) => {
+                    const ventaImpresion = normalizarVentaImpresion(venta);
+
+                    return (
+                      <div
+                        className={
+                          venta.estado === "anulada"
+                            ? "pos-venta-item anulada"
+                            : "pos-venta-item"
+                        }
+                        key={venta.id}
+                      >
+                        <div>
+                          <strong>Venta #{venta.id}</strong>
+                          <span>
+                            {new Date(venta.fecha).toLocaleTimeString()} - {venta.tipo_comprobante}
+                          </span>
+                          <small>
+                            {venta.cliente_nombre || "Consumidor Final"} - {venta.usuario_nombre || "-"}
                           </small>
-                        )}
-                      </div>
+                          {venta.estado === "anulada" && (
+                            <small className="pos-venta-anulada">
+                              ANULADA - {venta.motivo_anulacion || "Sin motivo"}
+                            </small>
+                          )}
+                        </div>
 
-                      <b>Q{Number(venta.total || 0).toFixed(2)}</b>
+                        <b>Q{Number(venta.total || 0).toFixed(2)}</b>
 
-                      <div className="pos-venta-actions">
-                        {venta.tipo_comprobante !== "Credito" && (
-                          <button
-                            onClick={() =>
-                              imprimirTicket(
-                                ventaADatosPago(venta),
-                                venta.detalle || [],
-                                venta
-                              )
-                            }
-                          >
-                            Factura
+                        <div className="pos-venta-actions">
+                          {venta.tipo_comprobante !== "Credito" && (
+                            <button
+                              onClick={() =>
+                                imprimirTicket(
+                                  ventaADatosPago(ventaImpresion),
+                                  ventaImpresion.detalle,
+                                  ventaImpresion
+                                )
+                              }
+                            >
+                              Factura
+                            </button>
+                          )}
+                          <button onClick={() => imprimirComanda(ventaImpresion)}>
+                            Comanda
                           </button>
-                        )}
-                        <button onClick={() => imprimirComanda(venta)}>
-                          Comanda
-                        </button>
-                        {venta.estado !== "anulada" && (
-                          <button
-                            className="pos-btn-anular"
-                            onClick={() => {
-                              setVentaAnular(venta);
-                              setAnulacion({
-                                motivo: "",
-                                password_admin: "",
-                              });
-                            }}
-                          >
-                            Anular
-                          </button>
-                        )}
+                          {venta.estado !== "anulada" && (
+                            <button
+                              className="pos-btn-anular"
+                              onClick={() => {
+                                setVentaAnular(venta);
+                                setAnulacion({
+                                  motivo: "",
+                                  password_admin: "",
+                                });
+                              }}
+                            >
+                              Anular
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   {ventas.length === 0 && (
                     <div className="pos-acciones-vacio">

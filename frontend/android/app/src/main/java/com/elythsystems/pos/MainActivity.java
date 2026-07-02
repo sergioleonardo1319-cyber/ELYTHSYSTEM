@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
@@ -14,6 +16,7 @@ import android.text.Html;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -24,6 +27,7 @@ import woyou.aidlservice.jiuiv5.IWoyouService;
 
 public class MainActivity extends BridgeActivity {
     private IWoyouService sunmiPrinterService;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private final ServiceConnection sunmiPrinterConnection = new ServiceConnection() {
         @Override
@@ -93,6 +97,67 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    private void printHtmlPreferSunmi(String html) {
+        if (printWithSunmiService(html)) {
+            return;
+        }
+
+        bindSunmiPrinterService();
+
+        mainHandler.postDelayed(() -> {
+            if (printWithSunmiService(html)) {
+                return;
+            }
+
+            Toast.makeText(
+                this,
+                "Impresora Sunmi no disponible. Intentando impresion Android.",
+                Toast.LENGTH_SHORT
+            ).show();
+            printWithAndroidSystem(html);
+        }, 1200);
+    }
+
+    private void printWithAndroidSystem(String html) {
+        WebView printWebView = new WebView(this);
+        printWebView.getSettings().setJavaScriptEnabled(false);
+        printWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                PrintManager printManager =
+                    (PrintManager) getSystemService(Context.PRINT_SERVICE);
+
+                if (printManager == null) {
+                    Toast.makeText(
+                        MainActivity.this,
+                        "No fue posible abrir impresion Android.",
+                        Toast.LENGTH_SHORT
+                    ).show();
+                    view.destroy();
+                    return;
+                }
+
+                PrintDocumentAdapter adapter =
+                    view.createPrintDocumentAdapter("ELYTH POS");
+
+                PrintAttributes attributes = new PrintAttributes.Builder()
+                    .setMediaSize(PrintAttributes.MediaSize.UNKNOWN_PORTRAIT)
+                    .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                    .build();
+
+                printManager.print("ELYTH POS", adapter, attributes);
+            }
+        });
+
+        printWebView.loadDataWithBaseURL(
+            null,
+            html,
+            "text/html",
+            "UTF-8",
+            null
+        );
+    }
+
     private String extractSunmiText(String html) {
         Pattern pattern = Pattern.compile(
             "<script[^>]*id=[\"']elyth-sunmi-text[\"'][^>]*>([\\s\\S]*?)</script>",
@@ -116,44 +181,12 @@ public class MainActivity extends BridgeActivity {
 
         @JavascriptInterface
         public void printHtml(String html) {
-            activity.runOnUiThread(() -> {
-                if (activity.printWithSunmiService(html)) {
-                    return;
-                }
+            activity.runOnUiThread(() -> activity.printHtmlPreferSunmi(html));
+        }
 
-                WebView printWebView = new WebView(activity);
-                printWebView.getSettings().setJavaScriptEnabled(false);
-                printWebView.setWebViewClient(new WebViewClient() {
-                    @Override
-                    public void onPageFinished(WebView view, String url) {
-                        PrintManager printManager =
-                            (PrintManager) activity.getSystemService(Context.PRINT_SERVICE);
-
-                        if (printManager == null) {
-                            view.destroy();
-                            return;
-                        }
-
-                        PrintDocumentAdapter adapter =
-                            view.createPrintDocumentAdapter("ELYTH POS");
-
-                        PrintAttributes attributes = new PrintAttributes.Builder()
-                            .setMediaSize(PrintAttributes.MediaSize.UNKNOWN_PORTRAIT)
-                            .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-                            .build();
-
-                        printManager.print("ELYTH POS", adapter, attributes);
-                    }
-                });
-
-                printWebView.loadDataWithBaseURL(
-                    null,
-                    html,
-                    "text/html",
-                    "UTF-8",
-                    null
-                );
-            });
+        @JavascriptInterface
+        public void print(String html) {
+            printHtml(html);
         }
     }
 }
