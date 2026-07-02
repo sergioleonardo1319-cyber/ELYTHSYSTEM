@@ -265,6 +265,18 @@ body.pos-device-android .pos-productos-panel,
 body.pos-device-sunmi .pos-productos-panel,
 body.pos-device-sunmi-d3 .pos-productos-panel {
   border-radius: 10px;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+body.pos-device-android .pos-productos-panel::-webkit-scrollbar,
+body.pos-device-sunmi .pos-productos-panel::-webkit-scrollbar,
+body.pos-device-sunmi-d3 .pos-productos-panel::-webkit-scrollbar {
+  display: none;
 }
 
 body.pos-device-android .pos-productos-header,

@@ -69,6 +69,22 @@
 body.pos-device-android .app-shell.pos-mode,
 body.pos-device-sunmi .app-shell.pos-mode,
 body.pos-device-sunmi-d3 .app-shell.pos-mode {
+  height: 100svh;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+body.pos-device-android:has(.app-shell.pos-mode),
+body.pos-device-sunmi:has(.app-shell.pos-mode),
+body.pos-device-sunmi-d3:has(.app-shell.pos-mode) {
+  height: 100svh;
+  overflow: hidden;
+}
+
+body.pos-device-android:has(.app-shell.pos-mode) #root,
+body.pos-device-sunmi:has(.app-shell.pos-mode) #root,
+body.pos-device-sunmi-d3:has(.app-shell.pos-mode) #root {
+  height: 100svh;
   overflow: hidden;
 }
 
@@ -76,11 +92,19 @@ body.pos-device-android .pos-page,
 body.pos-device-sunmi .pos-page,
 body.pos-device-sunmi-d3 .pos-page {
   gap: 6px;
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
   padding: 6px;
 }
 
+body.pos-device-android .sandbox-mode .pos-page,
+body.pos-device-sunmi .sandbox-mode .pos-page {
+  height: calc(100svh - 42px);
+}
+
 body.pos-device-sunmi-d3 .sandbox-mode .pos-page {
-  height: calc(100dvh - 34px);
+  height: calc(100svh - 34px);
 }
 
 body.pos-device-sunmi-d3 .sandbox-mode {
