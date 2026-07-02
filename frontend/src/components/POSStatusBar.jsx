@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   CalendarDays,
   CircleCheck,
@@ -9,16 +10,27 @@ import { APP_VERSION, getSelectedEnvironment } from "../config";
 import "./POSStatusBar.css";
 
 export default function POSStatusBar({ cajaActual }) {
-  const ahora = new Date();
+  const [ahora, setAhora] = useState(() => new Date());
+
+  useEffect(() => {
+    const reloj = window.setInterval(() => {
+      setAhora(new Date());
+    }, 1000);
+
+    return () => window.clearInterval(reloj);
+  }, []);
+
   const fecha = ahora.toLocaleDateString("es-GT", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "America/Guatemala",
   });
   const hora = ahora.toLocaleTimeString("es-GT", {
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
+    hour12: true,
+    timeZone: "America/Guatemala",
   });
   const ambiente = getSelectedEnvironment() === "sandbox" ? "Sandbox" : "Productivo";
 
@@ -46,7 +58,7 @@ export default function POSStatusBar({ cajaActual }) {
     {
       Icono: Info,
       label: "Version",
-      value: `${ambiente} · ${APP_VERSION}`,
+      value: `${ambiente} - ${APP_VERSION}`,
     },
   ];
 
