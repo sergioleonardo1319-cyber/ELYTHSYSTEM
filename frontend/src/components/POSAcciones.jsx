@@ -57,6 +57,7 @@ export default function POSAcciones({
     monto: "",
     autorizado_por: "",
   });
+  const [registrandoGasto, setRegistrandoGasto] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [aviso, setAviso] = useState(null);
   const [ventaAnular, setVentaAnular] = useState(null);
@@ -342,34 +343,42 @@ export default function POSAcciones({
   const registrarGasto = async (e) => {
     e.preventDefault();
 
-    const res = await fetch(`${API}/caja/gastos`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        ...gasto,
-        empresa_id: user.empresa_id,
-      }),
-    });
-    const data = await leerRespuesta(res);
+    if (registrandoGasto) return;
 
-    if (!res.ok) {
-      setAviso({
-        tipo: "error",
-        titulo: "Gasto no registrado",
-        mensaje: data.error || "No se pudo registrar gasto.",
+    setRegistrandoGasto(true);
+
+    try {
+      const res = await fetch(`${API}/caja/gastos`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          ...gasto,
+          empresa_id: user.empresa_id,
+        }),
       });
-      return;
+      const data = await leerRespuesta(res);
+
+      if (!res.ok) {
+        setAviso({
+          tipo: "error",
+          titulo: "Gasto no registrado",
+          mensaje: data.error || "No se pudo registrar gasto.",
+        });
+        return;
+      }
+
+      setGasto({
+        descripcion: "",
+        monto: "",
+        autorizado_por: "",
+      });
+      setMensaje("Gasto registrado");
+      await cargarCajaActual({ abrirModal: false });
+
+      setTimeout(() => setMensaje(""), 2500);
+    } finally {
+      setRegistrandoGasto(false);
     }
-
-    setGasto({
-      descripcion: "",
-      monto: "",
-      autorizado_por: "",
-    });
-    setMensaje("Gasto registrado");
-    await cargarCajaActual({ abrirModal: false });
-
-    setTimeout(() => setMensaje(""), 2500);
   };
 
   const ventaADatosPago = (venta) => ({
@@ -1025,7 +1034,9 @@ export default function POSAcciones({
                     <span>Registrado por</span>
                     <input value={user.nombre} disabled />
                   </label>
-                  <button type="submit">Guardar gasto</button>
+                  <button type="submit" disabled={registrandoGasto}>
+                    {registrandoGasto ? "Guardando..." : "Guardar gasto"}
+                  </button>
                 </form>
               </>
             )}
