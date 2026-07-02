@@ -31,7 +31,7 @@ export default function ModalImprimirComprobante({
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        zIndex: 10000,
+        zIndex: 30040,
         padding: 18,
       }}
     >

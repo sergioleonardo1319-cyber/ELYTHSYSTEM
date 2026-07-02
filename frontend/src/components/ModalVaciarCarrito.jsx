@@ -29,7 +29,7 @@ export default function ModalVaciarCarrito({
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        zIndex: 9999,
+        zIndex: 30040,
       }}
     >
       <div

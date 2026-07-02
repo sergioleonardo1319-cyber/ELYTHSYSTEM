@@ -236,7 +236,7 @@
   justify-content: center;
   padding: 18px;
   position: fixed;
-  z-index: 10000;
+  z-index: 30000;
 }
 
 .pos-acciones-modal {
@@ -509,7 +509,7 @@
   justify-content: center;
   padding: 22px;
   position: fixed;
-  z-index: 80;
+  z-index: 30010;
 }
 
 .pos-modal-card {

@@ -1,6 +1,6 @@
 .nav-pos {
   position: relative;
-  z-index: 10;
+  z-index: 5;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -265,7 +265,7 @@ body.pos-device-sunmi-d3 .header-card-value {
   padding: 8px;
   position: absolute;
   top: calc(100% + 8px);
-  z-index: 50;
+  z-index: 80;
 }
 
 .nav-pos-grupo:hover .nav-pos-menu,
@@ -393,7 +393,7 @@ body.pos-device-sunmi-d3 .header-card-value {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  z-index: 80;
+  z-index: 90;
   display: grid;
   gap: 10px;
   width: min(260px, 78vw);
@@ -554,7 +554,7 @@ body.pos-device-sunmi-d3 .header-card-value {
 .nav-pos-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10050;
+  z-index: 30020;
   display: flex;
   align-items: center;
   justify-content: center;
