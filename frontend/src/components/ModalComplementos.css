@@ -79,9 +79,12 @@
 .complementos-body {
   display: grid;
   gap: 14px;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 16px 20px;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .complementos-grupo,
@@ -302,4 +305,124 @@
   .complementos-footer button {
     flex: 1 1 140px;
   }
+}
+
+body.pos-device-android .complementos-overlay,
+body.pos-device-sunmi .complementos-overlay,
+body.pos-device-sunmi-d3 .complementos-overlay {
+  align-items: stretch;
+  padding: 8px;
+}
+
+body.pos-device-android .complementos-modal,
+body.pos-device-sunmi .complementos-modal,
+body.pos-device-sunmi-d3 .complementos-modal {
+  width: min(620px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  border-radius: 12px;
+}
+
+body.pos-device-android .complementos-header,
+body.pos-device-sunmi .complementos-header,
+body.pos-device-sunmi-d3 .complementos-header,
+body.pos-device-android .complementos-footer,
+body.pos-device-sunmi .complementos-footer,
+body.pos-device-sunmi-d3 .complementos-footer {
+  flex: 0 0 auto;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+body.pos-device-android .complementos-header span,
+body.pos-device-sunmi .complementos-header span,
+body.pos-device-sunmi-d3 .complementos-header span {
+  font-size: 9px;
+}
+
+body.pos-device-android .complementos-header h2,
+body.pos-device-sunmi .complementos-header h2,
+body.pos-device-sunmi-d3 .complementos-header h2 {
+  font-size: 19px;
+  margin-top: 3px;
+}
+
+body.pos-device-android .complementos-header button,
+body.pos-device-sunmi .complementos-header button,
+body.pos-device-sunmi-d3 .complementos-header button {
+  width: 34px;
+  height: 34px;
+}
+
+body.pos-device-android .complementos-body,
+body.pos-device-sunmi .complementos-body,
+body.pos-device-sunmi-d3 .complementos-body {
+  flex: 1 1 auto;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+
+body.pos-device-android .complementos-grupo,
+body.pos-device-sunmi .complementos-grupo,
+body.pos-device-sunmi-d3 .complementos-grupo,
+body.pos-device-android .complementos-observacion,
+body.pos-device-sunmi .complementos-observacion,
+body.pos-device-sunmi-d3 .complementos-observacion {
+  border-radius: 10px;
+  padding: 10px;
+}
+
+body.pos-device-android .complementos-grupo h3,
+body.pos-device-sunmi .complementos-grupo h3,
+body.pos-device-sunmi-d3 .complementos-grupo h3 {
+  font-size: 13px;
+}
+
+body.pos-device-android .complementos-grupo p,
+body.pos-device-sunmi .complementos-grupo p,
+body.pos-device-sunmi-d3 .complementos-grupo p {
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+body.pos-device-android .complementos-opciones,
+body.pos-device-sunmi .complementos-opciones,
+body.pos-device-sunmi-d3 .complementos-opciones {
+  gap: 8px;
+}
+
+body.pos-device-android .complementos-opciones button,
+body.pos-device-sunmi .complementos-opciones button,
+body.pos-device-sunmi-d3 .complementos-opciones button {
+  min-height: 42px;
+  border-radius: 9px;
+  padding: 8px 10px;
+}
+
+body.pos-device-android .complementos-opciones strong,
+body.pos-device-sunmi .complementos-opciones strong,
+body.pos-device-sunmi-d3 .complementos-opciones strong {
+  font-size: 12px;
+}
+
+body.pos-device-android .complementos-observacion textarea,
+body.pos-device-sunmi .complementos-observacion textarea,
+body.pos-device-sunmi-d3 .complementos-observacion textarea {
+  min-height: 68px;
+  font-size: 13px;
+  padding: 10px;
+}
+
+body.pos-device-android .complementos-footer strong,
+body.pos-device-sunmi .complementos-footer strong,
+body.pos-device-sunmi-d3 .complementos-footer strong {
+  font-size: 18px;
+}
+
+body.pos-device-android .complementos-footer button,
+body.pos-device-sunmi .complementos-footer button,
+body.pos-device-sunmi-d3 .complementos-footer button {
+  min-height: 38px;
+  padding: 0 14px;
 }
