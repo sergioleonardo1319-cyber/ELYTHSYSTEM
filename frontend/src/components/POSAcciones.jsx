@@ -58,6 +58,9 @@ export default function POSAcciones({
     autorizado_por: "",
   });
   const [registrandoGasto, setRegistrandoGasto] = useState(false);
+  const [diagnosticoImpresora, setDiagnosticoImpresora] = useState(null);
+  const [probandoImpresora, setProbandoImpresora] = useState(false);
+  const [diagnosticoCopiado, setDiagnosticoCopiado] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [aviso, setAviso] = useState(null);
   const [ventaAnular, setVentaAnular] = useState(null);
@@ -82,6 +85,192 @@ export default function POSAcciones({
       return JSON.parse(texto);
     } catch {
       return { error: "Respuesta no valida del servidor." };
+    }
+  };
+
+  const parseJsonSeguro = (valor) => {
+    if (!valor || typeof valor !== "string") return null;
+
+    try {
+      return JSON.parse(valor);
+    } catch {
+      return null;
+    }
+  };
+
+  const escapeHtml = (valor) =>
+    String(valor || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+  const obtenerPuenteImpresora = () => {
+    if (typeof window === "undefined") return null;
+
+    return (
+      window.ElythSunmiPrinter ||
+      window.SunmiPrinter ||
+      window.SUNMIPrinter ||
+      window.SUNMI ||
+      null
+    );
+  };
+
+  const leerEstadoImpresora = () => {
+    const puente = obtenerPuenteImpresora();
+    const metodos = puente
+      ? Object.keys(puente).filter((key) => typeof puente[key] === "function")
+      : [];
+    const base = {
+      fecha_frontend: new Date().toLocaleString("es-GT", {
+        timeZone: "America/Guatemala",
+      }),
+      user_agent:
+        typeof navigator !== "undefined" ? navigator.userAgent : "No disponible",
+      capacitor: Boolean(window?.Capacitor || window?.capacitor),
+      puente_disponible: Boolean(puente),
+      metodos,
+      empresa: user?.empresa_nombre || user?.empresa || user?.empresa_id || "-",
+      usuario: user?.nombre || "-",
+    };
+
+    if (!puente) {
+      return {
+        ...base,
+        ok: false,
+        service_connected: false,
+        mensaje: "Puente nativo no disponible. En web es normal.",
+      };
+    }
+
+    if (typeof puente.getStatus !== "function") {
+      return {
+        ...base,
+        ok: false,
+        service_connected: false,
+        mensaje: "El APK tiene puente, pero aun no expone getStatus.",
+      };
+    }
+
+    const estado = parseJsonSeguro(puente.getStatus());
+
+    if (!estado) {
+      return {
+        ...base,
+        ok: false,
+        service_connected: false,
+        mensaje: "La respuesta nativa no pudo leerse como JSON.",
+      };
+    }
+
+    return {
+      ...base,
+      ...estado,
+    };
+  };
+
+  const abrirDiagnosticoImpresora = () => {
+    setAbierto(false);
+    setDiagnosticoCopiado(false);
+    setDiagnosticoImpresora(leerEstadoImpresora());
+    setModal("diagnosticoImpresora");
+  };
+
+  const crearTextoDiagnostico = (data = diagnosticoImpresora) =>
+    JSON.stringify(data || {}, null, 2);
+
+  const copiarDiagnostico = async () => {
+    const texto = crearTextoDiagnostico();
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(texto);
+      } else {
+        const temporal = document.createElement("textarea");
+        temporal.value = texto;
+        document.body.appendChild(temporal);
+        temporal.select();
+        document.execCommand("copy");
+        document.body.removeChild(temporal);
+      }
+
+      setDiagnosticoCopiado(true);
+      setTimeout(() => setDiagnosticoCopiado(false), 1800);
+    } catch {
+      setAviso({
+        tipo: "error",
+        titulo: "No se pudo copiar",
+        mensaje: "Seleccione el texto del diagnostico y copielo manualmente.",
+      });
+    }
+  };
+
+  const probarImpresora = async () => {
+    const puente = obtenerPuenteImpresora();
+    setProbandoImpresora(true);
+    setDiagnosticoCopiado(false);
+
+    const textoPrueba = [
+      "ELYTH POS",
+      "DIAGNOSTICO DE IMPRESION",
+      `Empresa: ${user?.empresa_nombre || user?.empresa || user?.empresa_id || "-"}`,
+      `Usuario: ${user?.nombre || "-"}`,
+      `Fecha: ${new Date().toLocaleString("es-GT", {
+        timeZone: "America/Guatemala",
+      })}`,
+      "Si este ticket salio, la impresora Sunmi respondio.",
+      "",
+    ].join("\n");
+
+    try {
+      let resultado = {
+        ok: false,
+        mensaje: "No existe puente nativo de impresion en esta vista.",
+      };
+
+      if (puente?.testPrint) {
+        resultado =
+          parseJsonSeguro(puente.testPrint(textoPrueba)) || {
+            ok: false,
+            mensaje: "La prueba nativa no devolvio JSON valido.",
+          };
+      } else if (puente?.printHtml) {
+        puente.printHtml(
+          `<script type="text/plain" id="elyth-sunmi-text">${escapeHtml(
+            textoPrueba
+          )}</script>`
+        );
+        resultado = {
+          ok: true,
+          modo: "printHtml",
+          mensaje: "Prueba enviada por printHtml.",
+        };
+      } else if (puente?.print) {
+        puente.print(textoPrueba);
+        resultado = {
+          ok: true,
+          modo: "print",
+          mensaje: "Prueba enviada por print.",
+        };
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      setDiagnosticoImpresora({
+        ...leerEstadoImpresora(),
+        prueba_frontend: resultado,
+      });
+    } catch (error) {
+      setDiagnosticoImpresora({
+        ...leerEstadoImpresora(),
+        prueba_frontend: {
+          ok: false,
+          error: error?.message || String(error),
+        },
+      });
+    } finally {
+      setProbandoImpresora(false);
     }
   };
 
@@ -578,6 +767,9 @@ export default function POSAcciones({
           <button onClick={() => { setAbierto(false); setModal("gasto"); }}>
             Registrar gasto
           </button>
+          <button onClick={abrirDiagnosticoImpresora}>
+            Diagnostico impresora
+          </button>
         </div>
       )}
 
@@ -1038,6 +1230,91 @@ export default function POSAcciones({
                     {registrandoGasto ? "Guardando..." : "Guardar gasto"}
                   </button>
                 </form>
+              </>
+            )}
+
+            {modal === "diagnosticoImpresora" && (
+              <>
+                <h2>Diagnostico impresora</h2>
+                <p>
+                  Valida si el APK detecta el puente nativo y el servicio de
+                  impresion Sunmi.
+                </p>
+
+                <div className="pos-diagnostico-grid">
+                  <div>
+                    <span>Puente nativo</span>
+                    <strong
+                      className={
+                        diagnosticoImpresora?.puente_disponible
+                          ? "pos-diagnostico-ok"
+                          : "pos-diagnostico-error"
+                      }
+                    >
+                      {diagnosticoImpresora?.puente_disponible ? "Activo" : "No disponible"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Servicio Sunmi</span>
+                    <strong
+                      className={
+                        diagnosticoImpresora?.service_connected
+                          ? "pos-diagnostico-ok"
+                          : "pos-diagnostico-error"
+                      }
+                    >
+                      {diagnosticoImpresora?.service_connected
+                        ? "Conectado"
+                        : "No conectado"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Modo ultimo intento</span>
+                    <strong>{diagnosticoImpresora?.last_mode || "-"}</strong>
+                  </div>
+                  <div>
+                    <span>Ultimo evento</span>
+                    <strong>{diagnosticoImpresora?.last_event || "-"}</strong>
+                  </div>
+                  <div>
+                    <span>Ultimo error</span>
+                    <strong>{diagnosticoImpresora?.last_error || "Sin error"}</strong>
+                  </div>
+                  <div>
+                    <span>Dispositivo</span>
+                    <strong>{diagnosticoImpresora?.device || "Web / navegador"}</strong>
+                  </div>
+                </div>
+
+                {diagnosticoImpresora?.mensaje && (
+                  <div className="pos-diagnostico-aviso">
+                    {diagnosticoImpresora.mensaje}
+                  </div>
+                )}
+
+                <div className="pos-diagnostico-actions">
+                  <button
+                    type="button"
+                    onClick={() => setDiagnosticoImpresora(leerEstadoImpresora())}
+                  >
+                    Actualizar
+                  </button>
+                  <button
+                    type="button"
+                    className="pos-diagnostico-primary"
+                    disabled={probandoImpresora}
+                    onClick={probarImpresora}
+                  >
+                    {probandoImpresora ? "Probando..." : "Probar impresion"}
+                  </button>
+                  <button type="button" onClick={copiarDiagnostico}>
+                    {diagnosticoCopiado ? "Copiado" : "Copiar diagnostico"}
+                  </button>
+                </div>
+
+                <pre className="pos-diagnostico-json">
+                  {crearTextoDiagnostico()}
+                </pre>
               </>
             )}
           </div>

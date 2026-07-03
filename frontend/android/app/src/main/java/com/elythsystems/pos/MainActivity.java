@@ -28,16 +28,22 @@ import woyou.aidlservice.jiuiv5.IWoyouService;
 public class MainActivity extends BridgeActivity {
     private IWoyouService sunmiPrinterService;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private String lastPrinterEvent = "Sin intentos";
+    private String lastPrinterError = "";
+    private String lastPrintMode = "";
+    private String lastPrintAt = "";
 
     private final ServiceConnection sunmiPrinterConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             sunmiPrinterService = IWoyouService.Stub.asInterface(service);
+            setPrinterEvent("Servicio Sunmi conectado", "sunmi", "");
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             sunmiPrinterService = null;
+            setPrinterEvent("Servicio Sunmi desconectado", "sunmi", "Servicio desconectado");
         }
     };
 
@@ -73,26 +79,35 @@ public class MainActivity extends BridgeActivity {
             bindService(intent, sunmiPrinterConnection, Context.BIND_AUTO_CREATE);
         } catch (Exception ignored) {
             sunmiPrinterService = null;
+            setPrinterEvent("No fue posible enlazar Sunmi", "sunmi", ignored.getMessage());
         }
     }
 
     private boolean printWithSunmiService(String html) {
+        String text = extractSunmiText(html);
+        return printTextWithSunmiService(text);
+    }
+
+    private boolean printTextWithSunmiService(String text) {
         if (sunmiPrinterService == null) {
             bindSunmiPrinterService();
+            setPrinterEvent("Servicio Sunmi no disponible", "sunmi", "Servicio nativo no conectado");
             return false;
         }
 
-        String text = extractSunmiText(html);
+        String safeText = text == null ? "" : text;
 
         try {
             sunmiPrinterService.printerInit(null);
             sunmiPrinterService.setAlignment(0, null);
             sunmiPrinterService.setFontSize(24f, null);
-            sunmiPrinterService.printText(text + "\n", null);
+            sunmiPrinterService.printText(safeText + "\n", null);
             sunmiPrinterService.lineWrap(4, null);
+            setPrinterEvent("Impresion enviada por Sunmi", "sunmi", "");
             return true;
         } catch (RemoteException error) {
             sunmiPrinterService = null;
+            setPrinterEvent("Error imprimiendo por Sunmi", "sunmi", error.getMessage());
             return false;
         }
     }
@@ -119,6 +134,8 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void printWithAndroidSystem(String html) {
+        setPrinterEvent("Intentando impresion Android", "android-print-manager", "");
+
         WebView printWebView = new WebView(this);
         printWebView.getSettings().setJavaScriptEnabled(false);
         printWebView.setWebViewClient(new WebViewClient() {
@@ -128,6 +145,11 @@ public class MainActivity extends BridgeActivity {
                     (PrintManager) getSystemService(Context.PRINT_SERVICE);
 
                 if (printManager == null) {
+                    setPrinterEvent(
+                        "Android PrintManager no disponible",
+                        "android-print-manager",
+                        "No fue posible abrir impresion Android"
+                    );
                     Toast.makeText(
                         MainActivity.this,
                         "No fue posible abrir impresion Android.",
@@ -145,6 +167,7 @@ public class MainActivity extends BridgeActivity {
                     .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
                     .build();
 
+                setPrinterEvent("Dialogo Android enviado", "android-print-manager", "");
                 printManager.print("ELYTH POS", adapter, attributes);
             }
         });
@@ -172,6 +195,36 @@ public class MainActivity extends BridgeActivity {
         return Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY).toString().trim();
     }
 
+    private void setPrinterEvent(String event, String mode, String error) {
+        lastPrinterEvent = event == null ? "" : event;
+        lastPrintMode = mode == null ? "" : mode;
+        lastPrinterError = error == null ? "" : error;
+        lastPrintAt = String.valueOf(System.currentTimeMillis());
+    }
+
+    private String jsonEscape(String value) {
+        if (value == null) return "";
+
+        return value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "");
+    }
+
+    private String getPrinterStatusJson() {
+        return "{"
+            + "\"ok\":true,"
+            + "\"bridge\":\"ElythSunmiPrinter\","
+            + "\"device\":\"Android/Sunmi\","
+            + "\"service_connected\":" + (sunmiPrinterService != null) + ","
+            + "\"last_event\":\"" + jsonEscape(lastPrinterEvent) + "\","
+            + "\"last_error\":\"" + jsonEscape(lastPrinterError) + "\","
+            + "\"last_mode\":\"" + jsonEscape(lastPrintMode) + "\","
+            + "\"last_at\":\"" + jsonEscape(lastPrintAt) + "\""
+            + "}";
+    }
+
     public class ElythSunmiPrinterBridge {
         private final MainActivity activity;
 
@@ -187,6 +240,21 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public void print(String html) {
             printHtml(html);
+        }
+
+        @JavascriptInterface
+        public String getStatus() {
+            return activity.getPrinterStatusJson();
+        }
+
+        @JavascriptInterface
+        public String testPrint(String text) {
+            String safeText = text == null || text.trim().isEmpty()
+                ? "ELYTH POS\nPRUEBA DE IMPRESION\nSunmi"
+                : text;
+
+            activity.printTextWithSunmiService(safeText);
+            return activity.getPrinterStatusJson();
         }
     }
 }

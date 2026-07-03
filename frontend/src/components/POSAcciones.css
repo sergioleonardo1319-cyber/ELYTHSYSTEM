@@ -622,6 +622,96 @@
   padding: 10px;
 }
 
+.pos-diagnostico-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.pos-diagnostico-grid div {
+  background: #f8fafc;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  display: grid;
+  gap: 8px;
+  min-height: 78px;
+  padding: 14px;
+}
+
+.pos-diagnostico-grid span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.pos-diagnostico-grid strong {
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.pos-diagnostico-ok {
+  color: #15803d !important;
+}
+
+.pos-diagnostico-error {
+  color: #b91c1c !important;
+}
+
+.pos-diagnostico-aviso {
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 12px;
+  color: #92400e;
+  font-weight: 900;
+  margin-bottom: 14px;
+  padding: 12px;
+}
+
+.pos-diagnostico-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1cm;
+  margin-bottom: 14px;
+}
+
+.pos-diagnostico-actions button {
+  background: #e2e8f0;
+  border: 0;
+  border-radius: 11px;
+  color: #0f172a;
+  cursor: pointer;
+  font-weight: 950;
+  min-height: 42px;
+  padding: 0 16px;
+}
+
+.pos-diagnostico-actions button:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.pos-diagnostico-actions .pos-diagnostico-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.pos-diagnostico-json {
+  background: #0f172a;
+  border-radius: 14px;
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 14px;
+  white-space: pre-wrap;
+}
+
 .pos-acciones-vacio {
   border: 1px dashed #cbd5e1;
   border-radius: 12px;
@@ -636,6 +726,7 @@
   .pos-credito-item,
   .pos-resumen-grid,
   .pos-gasto-form,
+  .pos-diagnostico-grid,
   .pos-denominaciones-grid,
   .pos-cierre-resumen,
   .pos-autorizacion-box,
