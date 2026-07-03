@@ -1269,6 +1269,20 @@ export default function POSAcciones({
                     </strong>
                   </div>
                   <div>
+                    <span>Registro JS</span>
+                    <strong
+                      className={
+                        diagnosticoImpresora?.bridge_registered
+                          ? "pos-diagnostico-ok"
+                          : "pos-diagnostico-error"
+                      }
+                    >
+                      {diagnosticoImpresora?.bridge_registered
+                        ? "Registrado"
+                        : "Sin confirmar"}
+                    </strong>
+                  </div>
+                  <div>
                     <span>Modo ultimo intento</span>
                     <strong>{diagnosticoImpresora?.last_mode || "-"}</strong>
                   </div>

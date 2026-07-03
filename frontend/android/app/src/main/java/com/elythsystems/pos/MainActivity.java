@@ -32,6 +32,7 @@ public class MainActivity extends BridgeActivity {
     private String lastPrinterError = "";
     private String lastPrintMode = "";
     private String lastPrintAt = "";
+    private boolean sunmiBridgeRegistered = false;
 
     private final ServiceConnection sunmiPrinterConnection = new ServiceConnection() {
         @Override
@@ -51,13 +52,14 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         bindSunmiPrinterService();
+        registerSunmiJavascriptBridge(0);
+    }
 
-        if (this.bridge != null && this.bridge.getWebView() != null) {
-            this.bridge.getWebView().addJavascriptInterface(
-                new ElythSunmiPrinterBridge(this),
-                "ElythSunmiPrinter"
-            );
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bindSunmiPrinterService();
+        registerSunmiJavascriptBridge(0);
     }
 
     @Override
@@ -81,6 +83,40 @@ public class MainActivity extends BridgeActivity {
             sunmiPrinterService = null;
             setPrinterEvent("No fue posible enlazar Sunmi", "sunmi", ignored.getMessage());
         }
+    }
+
+    private void registerSunmiJavascriptBridge(int attempt) {
+        WebView webView = this.bridge != null ? this.bridge.getWebView() : null;
+
+        if (webView == null) {
+            if (attempt < 12) {
+                mainHandler.postDelayed(
+                    () -> registerSunmiJavascriptBridge(attempt + 1),
+                    300
+                );
+            } else {
+                setPrinterEvent(
+                    "WebView no disponible para registrar puente",
+                    "bridge",
+                    "No se pudo registrar ElythSunmiPrinter"
+                );
+            }
+            return;
+        }
+
+        webView.post(() -> {
+            try {
+                webView.removeJavascriptInterface("ElythSunmiPrinter");
+            } catch (Exception ignored) {
+            }
+
+            webView.addJavascriptInterface(
+                new ElythSunmiPrinterBridge(this),
+                "ElythSunmiPrinter"
+            );
+            sunmiBridgeRegistered = true;
+            setPrinterEvent("Puente JS Sunmi registrado", "bridge", "");
+        });
     }
 
     private boolean printWithSunmiService(String html) {
@@ -217,6 +253,7 @@ public class MainActivity extends BridgeActivity {
             + "\"ok\":true,"
             + "\"bridge\":\"ElythSunmiPrinter\","
             + "\"device\":\"Android/Sunmi\","
+            + "\"bridge_registered\":" + sunmiBridgeRegistered + ","
             + "\"service_connected\":" + (sunmiPrinterService != null) + ","
             + "\"last_event\":\"" + jsonEscape(lastPrinterEvent) + "\","
             + "\"last_error\":\"" + jsonEscape(lastPrinterError) + "\","
