@@ -1,0 +1,37 @@
+/* Capa global POS: evita que barras, carrito o botones queden sobre modales. */
+.cobro-overlay,
+.cobro-alerta-overlay,
+.complementos-overlay,
+.aviso-overlay,
+.pos-acciones-overlay,
+.pos-modal-overlay,
+.nav-pos-modal-overlay {
+  inset: 0 !important;
+  position: fixed !important;
+  z-index: 2147483000 !important;
+}
+
+.cobro-modal,
+.cobro-alerta,
+.complementos-modal,
+.aviso-modal,
+.pos-acciones-modal,
+.pos-modal-card,
+.nav-pos-modal {
+  position: relative !important;
+  z-index: 2147483001 !important;
+}
+
+.app-shell.pos-mode .nav-pos,
+.app-shell.pos-mode .pos-productos-header,
+.app-shell.pos-mode .pos-productos-panel,
+.app-shell.pos-mode .pos-carrito-panel,
+.app-shell.pos-mode .pos-carrito-cobrar,
+.app-shell.pos-mode .pos-acciones-menu {
+  z-index: 1 !important;
+}
+
+.app-shell.pos-mode .nav-pos-menu,
+.app-shell.pos-mode .nav-pos-user-dropdown {
+  z-index: 20 !important;
+}

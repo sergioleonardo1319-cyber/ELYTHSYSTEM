@@ -36,6 +36,8 @@ import {
   aplicarClaseDispositivoPOS,
   detectarDispositivoPOS,
 } from "./utils/dispositivoPOS";
+import { enviarHtmlImpresoraPOS } from "./utils/impresionPOS";
+import "./components/POSModalLayer.css";
 
 export default function App() {
 
@@ -532,33 +534,10 @@ export default function App() {
     dispositivoPOS?.esSunmi
   );
 
-  const obtenerPuenteImpresionNativa = () => {
-    if (typeof window === "undefined") return null;
-
-    return (
-      window.ElythSunmiPrinter ||
-      window.SunmiPrinter ||
-      window.SUNMIPrinter ||
-      window.SUNMI ||
-      null
-    );
-  };
-
   const imprimirHtmlInternoPOS = (html) => {
-    const puente = obtenerPuenteImpresionNativa();
-
-    try {
-      if (puente && typeof puente.printHtml === "function") {
-        puente.printHtml(html);
-        return true;
-      }
-
-      if (puente && typeof puente.print === "function") {
-        puente.print(html);
-        return true;
-      }
-    } catch (error) {
-      console.error("Error usando impresora nativa POS:", error);
+    if (usarImpresionInternaPOS) {
+      enviarHtmlImpresoraPOS(html);
+      return true;
     }
 
     const iframe = document.createElement("iframe");

@@ -2,6 +2,10 @@ import { useMemo, useState } from "react";
 import ModalAviso from "./ModalAviso";
 import "./POSAcciones.css";
 import { API } from "../config";
+import {
+  obtenerEstadoImpresoraPOS,
+  probarImpresoraPOS,
+} from "../utils/impresionPOS";
 
 const DENOMINACIONES = [
   { key: "q025", label: "Q0.25", valor: 0.25 },
@@ -88,93 +92,13 @@ export default function POSAcciones({
     }
   };
 
-  const parseJsonSeguro = (valor) => {
-    if (!valor || typeof valor !== "string") return null;
+  const leerEstadoImpresora = async () =>
+    obtenerEstadoImpresoraPOS({ user });
 
-    try {
-      return JSON.parse(valor);
-    } catch {
-      return null;
-    }
-  };
-
-  const escapeHtml = (valor) =>
-    String(valor || "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-
-  const obtenerPuenteImpresora = () => {
-    if (typeof window === "undefined") return null;
-
-    return (
-      window.ElythSunmiPrinter ||
-      window.SunmiPrinter ||
-      window.SUNMIPrinter ||
-      window.SUNMI ||
-      null
-    );
-  };
-
-  const leerEstadoImpresora = () => {
-    const puente = obtenerPuenteImpresora();
-    const metodos = puente
-      ? Object.keys(puente).filter((key) => typeof puente[key] === "function")
-      : [];
-    const base = {
-      fecha_frontend: new Date().toLocaleString("es-GT", {
-        timeZone: "America/Guatemala",
-      }),
-      user_agent:
-        typeof navigator !== "undefined" ? navigator.userAgent : "No disponible",
-      capacitor: Boolean(window?.Capacitor || window?.capacitor),
-      puente_disponible: Boolean(puente),
-      metodos,
-      empresa: user?.empresa_nombre || user?.empresa || user?.empresa_id || "-",
-      usuario: user?.nombre || "-",
-    };
-
-    if (!puente) {
-      return {
-        ...base,
-        ok: false,
-        service_connected: false,
-        mensaje: "Puente nativo no disponible. En web es normal.",
-      };
-    }
-
-    if (typeof puente.getStatus !== "function") {
-      return {
-        ...base,
-        ok: false,
-        service_connected: false,
-        mensaje: "El APK tiene puente, pero aun no expone getStatus.",
-      };
-    }
-
-    const estado = parseJsonSeguro(puente.getStatus());
-
-    if (!estado) {
-      return {
-        ...base,
-        ok: false,
-        service_connected: false,
-        mensaje: "La respuesta nativa no pudo leerse como JSON.",
-      };
-    }
-
-    return {
-      ...base,
-      ...estado,
-    };
-  };
-
-  const abrirDiagnosticoImpresora = () => {
+  const abrirDiagnosticoImpresora = async () => {
     setAbierto(false);
     setDiagnosticoCopiado(false);
-    setDiagnosticoImpresora(leerEstadoImpresora());
+    setDiagnosticoImpresora(await leerEstadoImpresora());
     setModal("diagnosticoImpresora");
   };
 
@@ -208,7 +132,6 @@ export default function POSAcciones({
   };
 
   const probarImpresora = async () => {
-    const puente = obtenerPuenteImpresora();
     setProbandoImpresora(true);
     setDiagnosticoCopiado(false);
 
@@ -225,45 +148,19 @@ export default function POSAcciones({
     ].join("\n");
 
     try {
-      let resultado = {
-        ok: false,
-        mensaje: "No existe puente nativo de impresion en esta vista.",
-      };
-
-      if (puente?.testPrint) {
-        resultado =
-          parseJsonSeguro(puente.testPrint(textoPrueba)) || {
-            ok: false,
-            mensaje: "La prueba nativa no devolvio JSON valido.",
-          };
-      } else if (puente?.printHtml) {
-        puente.printHtml(
-          `<script type="text/plain" id="elyth-sunmi-text">${escapeHtml(
-            textoPrueba
-          )}</script>`
-        );
-        resultado = {
-          ok: true,
-          modo: "printHtml",
-          mensaje: "Prueba enviada por printHtml.",
-        };
-      } else if (puente?.print) {
-        puente.print(textoPrueba);
-        resultado = {
-          ok: true,
-          modo: "print",
-          mensaje: "Prueba enviada por print.",
-        };
-      }
+      const resultado = await probarImpresoraPOS({
+        text: textoPrueba,
+        user,
+      });
 
       await new Promise((resolve) => setTimeout(resolve, 450));
       setDiagnosticoImpresora({
-        ...leerEstadoImpresora(),
+        ...(await leerEstadoImpresora()),
         prueba_frontend: resultado,
       });
     } catch (error) {
       setDiagnosticoImpresora({
-        ...leerEstadoImpresora(),
+        ...(await leerEstadoImpresora()),
         prueba_frontend: {
           ok: false,
           error: error?.message || String(error),
@@ -1309,7 +1206,9 @@ export default function POSAcciones({
                 <div className="pos-diagnostico-actions">
                   <button
                     type="button"
-                    onClick={() => setDiagnosticoImpresora(leerEstadoImpresora())}
+                    onClick={async () =>
+                      setDiagnosticoImpresora(await leerEstadoImpresora())
+                    }
                   >
                     Actualizar
                   </button>
