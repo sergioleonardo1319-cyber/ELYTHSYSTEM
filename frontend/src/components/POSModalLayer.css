@@ -35,3 +35,17 @@
 .app-shell.pos-mode .nav-pos-user-dropdown {
   z-index: 20 !important;
 }
+
+body.pos-modal-open .app-shell.pos-mode .pos-carrito-panel,
+body.pos-modal-open .app-shell.pos-mode .pos-carrito-cobrar {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  z-index: 0 !important;
+}
+
+body.pos-modal-open .app-shell.pos-mode .nav-pos,
+body.pos-modal-open .app-shell.pos-mode .pos-productos-header,
+body.pos-modal-open .app-shell.pos-mode .pos-productos-panel {
+  z-index: 0 !important;
+}

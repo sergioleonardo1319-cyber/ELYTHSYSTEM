@@ -6,6 +6,7 @@ import {
   obtenerEstadoImpresoraPOS,
   probarImpresoraPOS,
 } from "../utils/impresionPOS";
+import { usePOSModalLayer } from "../utils/posModalLayer";
 
 const DENOMINACIONES = [
   { key: "q025", label: "Q0.25", valor: 0.25 },
@@ -73,6 +74,8 @@ export default function POSAcciones({
     password_admin: "",
   });
   const [anulando, setAnulando] = useState(false);
+
+  usePOSModalLayer(Boolean(modal) || Boolean(ventaAnular) || Boolean(aviso));
 
   const token = sessionStorage.getItem("token");
 

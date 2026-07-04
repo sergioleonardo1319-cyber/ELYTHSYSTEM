@@ -41,6 +41,17 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
+      - name: Register local Sunmi printer plugin
+        run: |
+          cat > android/app/src/main/assets/capacitor.plugins.json <<'JSON'
+          [
+            {
+              "pkg": "com.elythsystems.pos",
+              "classpath": "com.elythsystems.pos.ElythSunmiPrinterPlugin"
+            }
+          ]
+          JSON
+
       - name: Build debug APK
         run: |
           chmod +x android/gradlew

@@ -37,6 +37,7 @@ import {
   detectarDispositivoPOS,
 } from "./utils/dispositivoPOS";
 import { enviarHtmlImpresoraPOS } from "./utils/impresionPOS";
+import { usePOSModalLayer } from "./utils/posModalLayer";
 import "./components/POSModalLayer.css";
 
 export default function App() {
@@ -131,6 +132,14 @@ export default function App() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] =
     useState("");
   const [busquedaPOS, setBusquedaPOS] = useState("");
+
+  usePOSModalLayer(
+    mostrarModalVaciar ||
+      mostrarModalCobro ||
+      Boolean(comprobantePendiente) ||
+      Boolean(aviso) ||
+      Boolean(productoComplementos)
+  );
 
   useEffect(() => {
     aplicarClaseDispositivoPOS(dispositivoPOS);
