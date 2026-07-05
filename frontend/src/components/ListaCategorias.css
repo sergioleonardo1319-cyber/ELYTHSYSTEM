@@ -144,6 +144,22 @@ body.pos-device-sunmi-d3 .pos-categorias-panel::-webkit-scrollbar {
   display: none;
 }
 
+.app-shell.sandbox-mode.pos-mode .pos-categorias-panel {
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.app-shell.sandbox-mode.pos-mode .pos-categorias-panel::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+.app-shell.sandbox-mode.pos-mode .pos-categorias-panel::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.7);
+  border-radius: 999px;
+}
+
 body.pos-device-android .pos-categorias-panel h2,
 body.pos-device-sunmi .pos-categorias-panel h2,
 body.pos-device-sunmi-d3 .pos-categorias-panel h2 {

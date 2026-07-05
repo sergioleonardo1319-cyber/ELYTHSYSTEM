@@ -40,6 +40,15 @@
   padding-top: 42px;
 }
 
+.app-shell.sandbox-mode.pos-mode {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.app-shell.sandbox-mode.pos-mode .pos-page {
+  max-height: 100%;
+}
+
 .sandbox-banner {
   position: fixed;
   z-index: 900;
@@ -127,6 +136,11 @@ body.pos-device-sunmi-d3 .sandbox-mode .pos-page {
 
 body.pos-device-sunmi-d3 .sandbox-mode {
   padding-top: 34px;
+}
+
+body.pos-device-sunmi-d3 .app-shell.sandbox-mode.pos-mode {
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 body.pos-device-sunmi-d3 .sandbox-banner {

@@ -384,6 +384,22 @@ body.pos-device-sunmi-d3 .pos-carrito-panel::-webkit-scrollbar {
   display: none;
 }
 
+.app-shell.sandbox-mode.pos-mode .pos-carrito-panel {
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.app-shell.sandbox-mode.pos-mode .pos-carrito-panel::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+.app-shell.sandbox-mode.pos-mode .pos-carrito-panel::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.7);
+  border-radius: 999px;
+}
+
 body.pos-device-android .pos-carrito-header,
 body.pos-device-sunmi .pos-carrito-header,
 body.pos-device-sunmi-d3 .pos-carrito-header {
