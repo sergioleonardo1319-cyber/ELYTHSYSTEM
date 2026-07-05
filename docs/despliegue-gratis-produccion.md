@@ -60,7 +60,7 @@ psql "postgresql://USER:PASSWORD@HOST/neondb?sslmode=require" -f database/schema
 psql "postgresql://USER:PASSWORD@HOST/neondb?sslmode=require" -f database/seed-superadmin.sql
 ```
 
-## 3. Subir Backend A Render
+## 3. Subir Backend Productivo A Render
 
 Crear un Web Service desde el repositorio.
 
@@ -92,7 +92,46 @@ SANDBOX_DB_PASSWORD=...
 SANDBOX_DB_SSL=true
 ```
 
-## 4. Subir Frontend A Vercel
+## 4. Subir Backend Sandbox A Render
+
+Crear un segundo Web Service desde el mismo repositorio.
+
+Configuracion:
+
+```text
+Name: elyth-pos-api-sandbox
+Build Command: npm install
+Start Command: npm start
+Health Check Path: /health
+```
+
+Variables:
+
+```text
+APP_ENV=sandbox
+NODE_ENV=production
+JWT_SECRET=crear_clave_larga_segura
+DB_HOST=...
+DB_PORT=5432
+DB_NAME=...
+DB_USER=...
+DB_PASSWORD=...
+DB_SSL=true
+SANDBOX_DB_HOST=...
+SANDBOX_DB_PORT=5432
+SANDBOX_DB_NAME=...
+SANDBOX_DB_USER=...
+SANDBOX_DB_PASSWORD=...
+SANDBOX_DB_SSL=true
+```
+
+La URL esperada sera similar a:
+
+```text
+https://elyth-pos-api-sandbox.onrender.com
+```
+
+## 5. Subir Frontend A Vercel
 
 Crear proyecto usando la carpeta `frontend`.
 
@@ -109,14 +148,31 @@ Variables:
 ```text
 VITE_APP_ENV=production
 VITE_APP_VERSION=1.0.0
-VITE_PRODUCTION_API_URL=https://tu-api.onrender.com
-VITE_SANDBOX_API_URL=https://tu-api.onrender.com
+VITE_PRODUCTION_API_URL=https://elyth-pos-api.onrender.com
+VITE_SANDBOX_API_URL=https://elyth-pos-api-sandbox.onrender.com
 VITE_ENV_SELECTOR_USERS=sergioleonardo1319@hotmail.com
 ```
 
-Si luego se crea un backend sandbox separado, cambiar `VITE_SANDBOX_API_URL`.
+`VITE_SANDBOX_API_URL` debe ser diferente de `VITE_PRODUCTION_API_URL`.
+Si son iguales, el login bloqueara el ingreso a sandbox para evitar pruebas sobre productivo.
 
-## 5. Usuario Temporal Superadmin
+## 6. Variables Para APK En GitHub Actions
+
+En GitHub, ir a:
+
+```text
+Settings > Secrets and variables > Actions > Variables
+```
+
+Crear:
+
+```text
+VITE_PRODUCTION_API_URL=https://elyth-pos-api.onrender.com
+VITE_SANDBOX_API_URL=https://elyth-pos-api-sandbox.onrender.com
+VITE_ENV_SELECTOR_USERS=sergioleonardo1319@hotmail.com
+```
+
+## 7. Usuario Temporal Superadmin
 
 Usuario:
 
@@ -132,7 +188,7 @@ Sergio0219
 
 Despues de subir a produccion, conviene cambiar esta clave desde el sistema.
 
-## 6. Primer Ingreso
+## 8. Primer Ingreso
 
 Entrar al Panel Admin SaaS y crear la empresa real:
 
