@@ -30,6 +30,10 @@ const baseDiagnostico = ({ user } = {}) => ({
   }),
   user_agent:
     typeof navigator !== "undefined" ? navigator.userAgent : "No disponible",
+  native_user_agent_build:
+    typeof navigator !== "undefined"
+      ? navigator.userAgent.match(/ELYTH_NATIVE_BUILD\/([^\s]+)/)?.[1] || null
+      : null,
   capacitor: Capacitor.isNativePlatform?.() || Capacitor.getPlatform?.() === "android",
   capacitor_platform: Capacitor.getPlatform?.() || "web",
   empresa: user?.empresa_nombre || user?.empresa || user?.empresa_id || "-",

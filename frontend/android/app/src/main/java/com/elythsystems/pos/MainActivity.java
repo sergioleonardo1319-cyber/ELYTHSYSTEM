@@ -54,6 +54,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ElythSunmiPrinterPlugin.class);
         super.onCreate(savedInstanceState);
         bindSunmiPrinterService();
+        markNativeBuildInUserAgent(0);
         registerSunmiJavascriptBridge(0);
     }
 
@@ -61,6 +62,7 @@ public class MainActivity extends BridgeActivity {
     protected void onResume() {
         super.onResume();
         bindSunmiPrinterService();
+        markNativeBuildInUserAgent(0);
         registerSunmiJavascriptBridge(0);
     }
 
@@ -85,6 +87,29 @@ public class MainActivity extends BridgeActivity {
             sunmiPrinterService = null;
             setPrinterEvent("No fue posible enlazar Sunmi", "sunmi", ignored.getMessage());
         }
+    }
+
+    private void markNativeBuildInUserAgent(int attempt) {
+        WebView webView = this.bridge != null ? this.bridge.getWebView() : null;
+
+        if (webView == null) {
+            if (attempt < 40) {
+                mainHandler.postDelayed(
+                    () -> markNativeBuildInUserAgent(attempt + 1),
+                    500
+                );
+            }
+            return;
+        }
+
+        webView.post(() -> {
+            String currentUserAgent = webView.getSettings().getUserAgentString();
+            String marker = " ELYTH_NATIVE_BUILD/" + NATIVE_BUILD;
+
+            if (currentUserAgent != null && !currentUserAgent.contains("ELYTH_NATIVE_BUILD/")) {
+                webView.getSettings().setUserAgentString(currentUserAgent + marker);
+            }
+        });
     }
 
     private void registerSunmiJavascriptBridge(int attempt) {
