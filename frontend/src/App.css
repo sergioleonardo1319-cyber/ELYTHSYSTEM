@@ -91,11 +91,18 @@ body.pos-device-sunmi-d3:has(.app-shell.pos-mode) #root {
 body.pos-device-android .pos-page,
 body.pos-device-sunmi .pos-page,
 body.pos-device-sunmi-d3 .pos-page {
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 6px;
   height: 100svh;
   min-height: 0;
   overflow: hidden;
   padding: 6px;
+}
+
+body.pos-device-sunmi-d3 .pos-page {
+  grid-template-rows: 58px minmax(0, 1fr) 42px;
+  gap: 4px;
+  padding: 4px;
 }
 
 body.pos-device-android .sandbox-mode .pos-page,

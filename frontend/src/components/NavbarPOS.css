@@ -1,6 +1,6 @@
 .nav-pos {
   position: relative;
-  z-index: 5;
+  z-index: 3000;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -22,6 +22,12 @@ body.pos-device-sunmi-d3 .nav-pos {
   border-radius: 10px;
 }
 
+body.pos-device-sunmi-d3 .nav-pos {
+  height: 58px;
+  min-height: 58px;
+  padding: 6px 8px;
+}
+
 body.pos-device-android .nav-pos-marca,
 body.pos-device-sunmi .nav-pos-marca,
 body.pos-device-sunmi-d3 .nav-pos-marca {
@@ -36,6 +42,12 @@ body.pos-device-sunmi-d3 .nav-pos-logo {
   height: 38px;
   border-radius: 10px;
   font-size: 13px;
+}
+
+body.pos-device-sunmi-d3 .nav-pos-logo {
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
 }
 
 body.pos-device-android .nav-pos-titulos strong,
@@ -69,6 +81,13 @@ body.pos-device-sunmi-d3 .nav-pos-notificaciones {
   border-radius: 10px;
   font-size: 12px;
   padding: 0 10px;
+}
+
+body.pos-device-sunmi-d3 .nav-pos-grupo-btn,
+body.pos-device-sunmi-d3 .nav-pos-notificaciones {
+  min-height: 38px;
+  border-radius: 9px;
+  padding: 0 8px;
 }
 
 body.pos-device-android .nav-pos-grupo-btn svg,
@@ -265,7 +284,7 @@ body.pos-device-sunmi-d3 .header-card-value {
   padding: 8px;
   position: absolute;
   top: calc(100% + 8px);
-  z-index: 80;
+  z-index: 3200;
 }
 
 .nav-pos-grupo:hover .nav-pos-menu,
@@ -393,7 +412,7 @@ body.pos-device-sunmi-d3 .header-card-value {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  z-index: 90;
+  z-index: 3200;
   display: grid;
   gap: 10px;
   width: min(260px, 78vw);

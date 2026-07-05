@@ -83,6 +83,11 @@ body.pos-device-sunmi-d3 .pos-status-bar {
   padding: 0 10px;
 }
 
+body.pos-device-sunmi-d3 .pos-status-bar {
+  min-height: 42px;
+  padding: 0 8px;
+}
+
 body.pos-device-android .pos-status-item,
 body.pos-device-sunmi .pos-status-item,
 body.pos-device-sunmi-d3 .pos-status-item {
@@ -96,14 +101,27 @@ body.pos-device-sunmi-d3 .pos-status-item svg {
   height: 22px;
 }
 
+body.pos-device-sunmi-d3 .pos-status-item svg {
+  width: 18px;
+  height: 18px;
+}
+
 body.pos-device-android .pos-status-item span,
 body.pos-device-sunmi .pos-status-item span,
 body.pos-device-sunmi-d3 .pos-status-item span {
   font-size: 10px;
 }
 
+body.pos-device-sunmi-d3 .pos-status-item span {
+  font-size: 8px;
+}
+
 body.pos-device-android .pos-status-item strong,
 body.pos-device-sunmi .pos-status-item strong,
 body.pos-device-sunmi-d3 .pos-status-item strong {
   font-size: 11px;
+}
+
+body.pos-device-sunmi-d3 .pos-status-item strong {
+  font-size: 9px;
 }

@@ -1,6 +1,6 @@
 .pos-productos-panel {
   position: relative;
-  z-index: 0;
+  z-index: 1;
   min-width: 0;
   max-height: none;
   min-height: 0;
@@ -17,7 +17,7 @@
 .pos-productos-header {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -273,6 +273,10 @@ body.pos-device-sunmi-d3 .pos-productos-panel {
   scrollbar-width: none;
 }
 
+body.pos-device-sunmi-d3 .pos-productos-panel {
+  padding: 8px;
+}
+
 body.pos-device-android .pos-productos-panel::-webkit-scrollbar,
 body.pos-device-sunmi .pos-productos-panel::-webkit-scrollbar,
 body.pos-device-sunmi-d3 .pos-productos-panel::-webkit-scrollbar {
@@ -287,6 +291,12 @@ body.pos-device-sunmi-d3 .pos-productos-header {
   padding: 10px 12px;
 }
 
+body.pos-device-sunmi-d3 .pos-productos-header {
+  min-height: 50px;
+  margin-bottom: 8px;
+  padding: 7px 9px;
+}
+
 body.pos-device-android .pos-productos-header h2,
 body.pos-device-sunmi .pos-productos-header h2,
 body.pos-device-sunmi-d3 .pos-productos-header h2 {
@@ -297,6 +307,11 @@ body.pos-device-android .pos-buscador-wrap,
 body.pos-device-sunmi .pos-buscador-wrap,
 body.pos-device-sunmi-d3 .pos-buscador-wrap {
   width: min(330px, 52vw);
+}
+
+body.pos-device-sunmi-d3 .pos-buscador-wrap {
+  height: 38px;
+  padding: 0 10px;
 }
 
 body.pos-device-android .pos-buscador-wrap input,
