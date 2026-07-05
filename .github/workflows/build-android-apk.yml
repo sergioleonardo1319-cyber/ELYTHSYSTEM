@@ -52,6 +52,7 @@ jobs:
 
       - name: Register local Sunmi printer plugin
         run: |
+          mkdir -p android/app/src/main/assets
           cat > android/app/src/main/assets/capacitor.plugins.json <<'JSON'
           [
             {
