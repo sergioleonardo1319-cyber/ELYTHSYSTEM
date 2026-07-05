@@ -66,18 +66,10 @@
   z-index: 50000 !important;
 }
 
-body.pos-device-android,
-body.pos-device-sunmi,
-body.pos-device-sunmi-d3,
-body.pos-device-android #root,
-body.pos-device-sunmi #root,
-body.pos-device-sunmi-d3 #root,
 body.pos-device-android .app-shell.pos-mode,
 body.pos-device-sunmi .app-shell.pos-mode,
 body.pos-device-sunmi-d3 .app-shell.pos-mode {
-  height: 100vh;
   height: 100svh;
-  min-height: 100vh;
   min-height: 100svh;
   overflow: hidden;
 }
@@ -101,11 +93,8 @@ body.pos-device-sunmi .pos-page,
 body.pos-device-sunmi-d3 .pos-page {
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 6px;
-  height: 100vh;
   height: 100svh;
   min-height: 0;
-  max-height: 100vh;
-  max-height: 100svh;
   overflow: hidden;
   padding: 6px;
 }

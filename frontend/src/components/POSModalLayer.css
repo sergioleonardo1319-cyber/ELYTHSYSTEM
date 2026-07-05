@@ -45,9 +45,7 @@
 }
 
 body.pos-modal-open .app-shell.pos-mode .pos-carrito-panel,
-body.pos-modal-open .app-shell.pos-mode .pos-carrito-cobrar,
-body.pos-modal-open .app-shell.pos-mode .pos-productos-header,
-body.pos-modal-open .app-shell.pos-mode .nav-pos {
+body.pos-modal-open .app-shell.pos-mode .pos-carrito-cobrar {
   opacity: 0 !important;
   pointer-events: none !important;
   visibility: hidden !important;
