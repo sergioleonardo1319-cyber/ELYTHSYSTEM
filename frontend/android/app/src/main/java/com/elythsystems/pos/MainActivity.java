@@ -59,7 +59,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         bindSunmiPrinterService();
         markNativeBuildInUserAgent(0);
@@ -67,7 +67,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         try {
             unbindService(sunmiPrinterConnection);
         } catch (Exception ignored) {

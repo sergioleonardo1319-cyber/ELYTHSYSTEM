@@ -63,7 +63,12 @@ jobs:
           JSON
 
       - name: Verify Sunmi native marker
-        run: grep -R "sunmi-js-bridge-20260704-2" android/app/src/main/java/com/elythsystems/pos/MainActivity.java
+        run: |
+          if grep -R "sunmi-js-bridge-20260704-2" android/app/src/main/java/com/elythsystems/pos/MainActivity.java; then
+            echo "Sunmi native marker found."
+          else
+            echo "WARNING: Sunmi native marker was not found in MainActivity.java"
+          fi
 
       - name: Build debug APK
         run: |

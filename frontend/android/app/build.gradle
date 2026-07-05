@@ -3,6 +3,9 @@ apply plugin: 'com.android.application'
 android {
     namespace = "com.elythsystems.pos"
     compileSdk = rootProject.ext.compileSdkVersion
+    buildFeatures {
+        aidl true
+    }
     defaultConfig {
         applicationId "com.elythsystems.pos"
         minSdkVersion rootProject.ext.minSdkVersion
