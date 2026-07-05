@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import woyou.aidlservice.jiuiv5.IWoyouService;
 
 public class MainActivity extends BridgeActivity {
+    private static final String NATIVE_BUILD = "sunmi-js-bridge-20260704-2";
     private IWoyouService sunmiPrinterService;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private String lastPrinterEvent = "Sin intentos";
@@ -90,10 +91,10 @@ public class MainActivity extends BridgeActivity {
         WebView webView = this.bridge != null ? this.bridge.getWebView() : null;
 
         if (webView == null) {
-            if (attempt < 12) {
+            if (attempt < 40) {
                 mainHandler.postDelayed(
                     () -> registerSunmiJavascriptBridge(attempt + 1),
-                    300
+                    500
                 );
             } else {
                 setPrinterEvent(
@@ -108,16 +109,48 @@ public class MainActivity extends BridgeActivity {
         webView.post(() -> {
             try {
                 webView.removeJavascriptInterface("ElythSunmiPrinter");
+                webView.removeJavascriptInterface("ElythSunmiPrinterNative");
             } catch (Exception ignored) {
             }
 
+            ElythSunmiPrinterBridge printerBridge = new ElythSunmiPrinterBridge(this);
             webView.addJavascriptInterface(
-                new ElythSunmiPrinterBridge(this),
+                printerBridge,
                 "ElythSunmiPrinter"
             );
+            webView.addJavascriptInterface(
+                printerBridge,
+                "ElythSunmiPrinterNative"
+            );
+            injectSunmiJavascriptBridge(webView);
             sunmiBridgeRegistered = true;
             setPrinterEvent("Puente JS Sunmi registrado", "bridge", "");
+
+            if (attempt < 40) {
+                mainHandler.postDelayed(
+                    () -> registerSunmiJavascriptBridge(attempt + 1),
+                    500
+                );
+            }
         });
+    }
+
+    private void injectSunmiJavascriptBridge(WebView webView) {
+        String script =
+            "(function(){try{" +
+            "if(window.ElythSunmiPrinterNative){" +
+            "window.ElythSunmiPrinter={" +
+            "getStatus:function(){return window.ElythSunmiPrinterNative.getStatus();}," +
+            "testPrint:function(text){return window.ElythSunmiPrinterNative.testPrint(String(text||''));}," +
+            "printHtml:function(html){return window.ElythSunmiPrinterNative.printHtml(String(html||''));}," +
+            "print:function(html){return window.ElythSunmiPrinterNative.print(String(html||''));}" +
+            "};" +
+            "window.ElythSunmiPrinterReady=true;" +
+            "window.dispatchEvent(new Event('elyth-sunmi-ready'));" +
+            "}" +
+            "}catch(error){console.error('ELYTH Sunmi bridge inject error', error);}})();";
+
+        webView.evaluateJavascript(script, null);
     }
 
     private boolean printWithSunmiService(String html) {
@@ -254,6 +287,7 @@ public class MainActivity extends BridgeActivity {
             + "\"ok\":true,"
             + "\"bridge\":\"ElythSunmiPrinter\","
             + "\"device\":\"Android/Sunmi\","
+            + "\"native_build\":\"" + jsonEscape(NATIVE_BUILD) + "\","
             + "\"bridge_registered\":" + sunmiBridgeRegistered + ","
             + "\"service_connected\":" + (sunmiPrinterService != null) + ","
             + "\"last_event\":\"" + jsonEscape(lastPrinterEvent) + "\","

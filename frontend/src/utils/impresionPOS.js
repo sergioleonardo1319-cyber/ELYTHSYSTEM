@@ -44,6 +44,8 @@ export const obtenerEstadoImpresoraPOS = async ({ user } = {}) => {
   const base = {
     ...baseDiagnostico({ user }),
     puente_disponible: Boolean(puente),
+    legacy_ready:
+      typeof window !== "undefined" ? Boolean(window.ElythSunmiPrinterReady) : false,
     metodos,
   };
 

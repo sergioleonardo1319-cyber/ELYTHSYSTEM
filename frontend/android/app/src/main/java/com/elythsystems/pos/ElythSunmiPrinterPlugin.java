@@ -21,6 +21,7 @@ import woyou.aidlservice.jiuiv5.IWoyouService;
 
 @CapacitorPlugin(name = "ElythSunmiPrinter")
 public class ElythSunmiPrinterPlugin extends Plugin {
+    private static final String NATIVE_BUILD = "sunmi-capacitor-plugin-20260704-2";
     private IWoyouService sunmiPrinterService;
     private String lastPrinterEvent = "Plugin cargado";
     private String lastPrinterError = "";
@@ -150,6 +151,7 @@ public class ElythSunmiPrinterPlugin extends Plugin {
         result.put("bridge", "ElythSunmiPrinter");
         result.put("bridge_registered", true);
         result.put("device", "Android/Sunmi");
+        result.put("native_build", NATIVE_BUILD);
         result.put("source", "capacitor-plugin");
         result.put("service_connected", sunmiPrinterService != null);
         result.put("last_event", lastPrinterEvent);
