@@ -1,4 +1,5 @@
 name: Build Android APK
+run-name: Build Android APK - ${{ github.ref_name }} - ${{ github.sha }}
 
 on:
   workflow_dispatch:
@@ -15,6 +16,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Build identity
+        id: build_identity
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "APK build commit: $GITHUB_SHA"
+          echo "APK build branch: $GITHUB_REF_NAME"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,14 +61,32 @@ jobs:
           ]
           JSON
 
+      - name: Verify Sunmi native marker
+        run: grep -R "sunmi-js-bridge-20260704-2" android/app/src/main/java/com/elythsystems/pos/MainActivity.java
+
       - name: Build debug APK
         run: |
           chmod +x android/gradlew
           cd android
           ./gradlew assembleDebug
 
+      - name: Create APK info
+        run: |
+          INFO_DIR="android/app/build/outputs/apk/debug"
+          cat > "$INFO_DIR/APK_INFO.txt" <<EOF
+          ELYTH POS APK
+          Branch: $GITHUB_REF_NAME
+          Commit: $GITHUB_SHA
+          Short commit: ${{ steps.build_identity.outputs.short_sha }}
+          Run number: $GITHUB_RUN_NUMBER
+          Native marker: sunmi-js-bridge-20260704-2
+          Generated UTC: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          EOF
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ELYTH-POS-debug-apk
-          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          name: ELYTH-POS-${{ github.ref_name }}-${{ steps.build_identity.outputs.short_sha }}-apk
+          path: |
+            frontend/android/app/build/outputs/apk/debug/app-debug.apk
+            frontend/android/app/build/outputs/apk/debug/APK_INFO.txt
