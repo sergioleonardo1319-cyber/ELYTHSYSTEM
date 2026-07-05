@@ -1,6 +1,6 @@
 .pos-acciones {
   position: relative;
-  z-index: 3200;
+  z-index: 1300;
 }
 
 .pos-acciones-trigger {
@@ -31,7 +31,7 @@
   position: absolute;
   right: 0;
   top: 48px;
-  z-index: 3200;
+  z-index: 1300;
 }
 
 .pos-caja-form {
