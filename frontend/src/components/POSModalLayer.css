@@ -44,10 +44,12 @@
   z-index: 2147483001 !important;
 }
 
+body.pos-modal-open .app-shell.pos-mode .nav-pos,
+body.pos-modal-open .app-shell.pos-mode .pos-layout,
+body.pos-modal-open .app-shell.pos-mode .pos-productos-header,
 body.pos-modal-open .app-shell.pos-mode .pos-carrito-panel,
-body.pos-modal-open .app-shell.pos-mode .pos-carrito-cobrar {
-  opacity: 0 !important;
+body.pos-modal-open .app-shell.pos-mode .pos-carrito-cobrar,
+body.pos-modal-open .app-shell.pos-mode .pos-status-bar {
   pointer-events: none !important;
-  visibility: hidden !important;
   z-index: 0 !important;
 }

@@ -6,7 +6,9 @@
 }
 
 .app-shell.pos-mode {
+  height: 100vh;
   height: 100dvh;
+  min-height: 100vh;
   min-height: 100dvh;
   background:
     radial-gradient(circle at 20% 0%, rgba(245, 181, 46, 0.08), transparent 28%),
@@ -20,6 +22,7 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 10px;
+  height: 100vh;
   height: 100dvh;
   min-height: 0;
   padding: 10px 14px;
@@ -28,6 +31,7 @@
 }
 
 .sandbox-mode .pos-page {
+  height: calc(100vh - 42px);
   height: calc(100dvh - 42px);
   min-height: 0;
 }
@@ -69,7 +73,9 @@
 body.pos-device-android .app-shell.pos-mode,
 body.pos-device-sunmi .app-shell.pos-mode,
 body.pos-device-sunmi-d3 .app-shell.pos-mode {
+  height: 100vh;
   height: 100svh;
+  min-height: 100vh;
   min-height: 100svh;
   overflow: hidden;
 }
@@ -77,6 +83,7 @@ body.pos-device-sunmi-d3 .app-shell.pos-mode {
 body.pos-device-android:has(.app-shell.pos-mode),
 body.pos-device-sunmi:has(.app-shell.pos-mode),
 body.pos-device-sunmi-d3:has(.app-shell.pos-mode) {
+  height: 100vh;
   height: 100svh;
   overflow: hidden;
 }
@@ -84,6 +91,7 @@ body.pos-device-sunmi-d3:has(.app-shell.pos-mode) {
 body.pos-device-android:has(.app-shell.pos-mode) #root,
 body.pos-device-sunmi:has(.app-shell.pos-mode) #root,
 body.pos-device-sunmi-d3:has(.app-shell.pos-mode) #root {
+  height: 100vh;
   height: 100svh;
   overflow: hidden;
 }
@@ -93,6 +101,7 @@ body.pos-device-sunmi .pos-page,
 body.pos-device-sunmi-d3 .pos-page {
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 6px;
+  height: 100vh;
   height: 100svh;
   min-height: 0;
   overflow: hidden;
@@ -107,10 +116,12 @@ body.pos-device-sunmi-d3 .pos-page {
 
 body.pos-device-android .sandbox-mode .pos-page,
 body.pos-device-sunmi .sandbox-mode .pos-page {
+  height: calc(100vh - 42px);
   height: calc(100svh - 42px);
 }
 
 body.pos-device-sunmi-d3 .sandbox-mode .pos-page {
+  height: calc(100vh - 34px);
   height: calc(100svh - 34px);
 }
 
