@@ -145,8 +145,10 @@ body.pos-device-sunmi-d3 .pos-categorias-panel::-webkit-scrollbar {
 }
 
 .app-shell.sandbox-mode.pos-mode .pos-categorias-panel {
+  height: 100%;
   max-height: 100%;
-  overflow-y: auto;
+  min-height: 0;
+  overflow-y: scroll;
   scrollbar-width: thin;
 }
 
