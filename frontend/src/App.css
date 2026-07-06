@@ -155,6 +155,40 @@ body.pos-device-sunmi-d3 .sandbox-banner strong {
   font-size: 13px;
 }
 
+body.pos-device-android .app-shell.pos-mode,
+body.pos-device-sunmi .app-shell.pos-mode,
+body.pos-device-sunmi-d3 .app-shell.pos-mode {
+  height: var(--pos-viewport-height, 100svh);
+  min-height: var(--pos-viewport-height, 100svh);
+  max-height: var(--pos-viewport-height, 100svh);
+  overflow: hidden;
+}
+
+body.pos-device-android .app-shell.pos-mode .pos-page,
+body.pos-device-sunmi .app-shell.pos-mode .pos-page,
+body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-page {
+  height: var(--pos-viewport-height, 100svh);
+  min-height: 0;
+  max-height: var(--pos-viewport-height, 100svh);
+  overflow: hidden;
+}
+
+body.pos-device-android .app-shell.sandbox-mode.pos-mode,
+body.pos-device-sunmi .app-shell.sandbox-mode.pos-mode,
+body.pos-device-sunmi-d3 .app-shell.sandbox-mode.pos-mode {
+  height: var(--pos-viewport-height, 100svh);
+  min-height: var(--pos-viewport-height, 100svh);
+  max-height: var(--pos-viewport-height, 100svh);
+}
+
+body.pos-device-android .app-shell.sandbox-mode.pos-mode .pos-page,
+body.pos-device-sunmi .app-shell.sandbox-mode.pos-mode .pos-page,
+body.pos-device-sunmi-d3 .app-shell.sandbox-mode.pos-mode .pos-page {
+  height: calc(var(--pos-viewport-height, 100svh) - 34px);
+  min-height: 0;
+  max-height: calc(var(--pos-viewport-height, 100svh) - 34px);
+}
+
 .sandbox-banner strong {
   font-size: 16px;
   letter-spacing: 0.08em;

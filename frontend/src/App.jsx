@@ -157,6 +157,37 @@ export default function App() {
     );
   }, [dispositivoPOS]);
 
+  useEffect(() => {
+    const actualizarViewportPOS = () => {
+      const altoVisual = window.visualViewport?.height;
+      const altoVentana = window.innerHeight;
+      const alto = Math.round(altoVisual || altoVentana || 0);
+
+      if (alto > 0) {
+        document.documentElement.style.setProperty(
+          "--pos-viewport-height",
+          `${alto}px`
+        );
+      }
+    };
+
+    actualizarViewportPOS();
+
+    window.addEventListener("resize", actualizarViewportPOS);
+    window.addEventListener("orientationchange", actualizarViewportPOS);
+    window.visualViewport?.addEventListener("resize", actualizarViewportPOS);
+
+    return () => {
+      window.removeEventListener("resize", actualizarViewportPOS);
+      window.removeEventListener("orientationchange", actualizarViewportPOS);
+      window.visualViewport?.removeEventListener(
+        "resize",
+        actualizarViewportPOS
+      );
+      document.documentElement.style.removeProperty("--pos-viewport-height");
+    };
+  }, []);
+
   // =========================
   // CARRITO
   // =========================

@@ -449,3 +449,15 @@ body.pos-device-sunmi-d3 .pos-carrito-cobrar {
   min-height: 42px;
   margin-bottom: 12px;
 }
+
+body.pos-device-android .app-shell.pos-mode .pos-carrito-panel,
+body.pos-device-sunmi .app-shell.pos-mode .pos-carrito-panel,
+body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-carrito-panel {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}

@@ -191,3 +191,27 @@ body.pos-device-sunmi .pos-categoria-nombre,
 body.pos-device-sunmi-d3 .pos-categoria-nombre {
   font-size: 15px;
 }
+
+body.pos-device-android .app-shell.pos-mode .pos-categorias-panel,
+body.pos-device-sunmi .app-shell.pos-mode .pos-categorias-panel,
+body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-categorias-panel {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-categoria-btn {
+  min-height: 60px;
+  padding: 10px 11px;
+}
+
+body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-categoria-nombre {
+  font-size: 15px;
+  line-height: 1.08;
+  overflow-wrap: normal;
+  word-break: normal;
+}
