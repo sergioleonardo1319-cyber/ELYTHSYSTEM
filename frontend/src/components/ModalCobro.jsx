@@ -10,8 +10,6 @@ export default function ModalCobro({
   onConfirmar,
 }) {
   const LIMITE_CAMBIO_ALTO = 100;
-  const LIMITE_MONTO_INDIVIDUAL = 100;
-  const LIMITE_EXCESO_INDIVIDUAL = 50;
 
   const [efectivo, setEfectivo] = useState("");
   const [tarjetaMonto, setTarjetaMonto] = useState("");
@@ -125,24 +123,9 @@ export default function ModalCobro({
     return enteros;
   };
 
-  const validarMontoDigitado = (valor, etiqueta) => {
-    const monto = Number(valor || 0);
-
-    if (
-      monto >= LIMITE_MONTO_INDIVIDUAL &&
-      monto - totalFinal >= LIMITE_EXCESO_INDIVIDUAL
-    ) {
-      setAlertaPago({
-        titulo: "Monto inusual",
-        mensaje: `${etiqueta} es Q${monto.toFixed(2)} y supera demasiado el total de la venta. Verifique el monto antes de continuar.`,
-      });
-    }
-  };
-
-  const actualizarMonto = (setter, etiqueta) => (evento) => {
+  const actualizarMonto = (setter) => (evento) => {
     const valor = normalizarMonto(evento.target.value);
     setter(valor);
-    validarMontoDigitado(valor, etiqueta);
   };
 
   const clienteSeleccionado = useMemo(
@@ -176,17 +159,12 @@ export default function ModalCobro({
 
   if (!visible) return null;
 
-  const confirmarPago = async () => {
+  const confirmarPago = async (permitirCambioAlto = false) => {
     if (procesando) return;
 
     const esCredito = tipoComprobante === "Credito";
     const saldoFavorDisponible = Number(clienteSeleccionado?.saldo_favor || 0);
     const saldoFavorFinal = esCredito ? 0 : Number(saldoFavorUsado || 0);
-    const montosPago = [
-      { etiqueta: "El efectivo recibido", monto: Number(efectivo || 0) },
-      { etiqueta: "El pago con tarjeta", monto: Number(tarjetaMonto || 0) },
-      { etiqueta: "La transferencia", monto: Number(transferenciaMonto || 0) },
-    ];
 
     if (esCredito) {
       if (!clienteSeleccionado) {
@@ -263,26 +241,11 @@ export default function ModalCobro({
       return;
     }
 
-    if (!esCredito) {
-      const montoInusual = montosPago.find(
-        (item) =>
-          item.monto >= LIMITE_MONTO_INDIVIDUAL &&
-          item.monto - totalFinal >= LIMITE_EXCESO_INDIVIDUAL
-      );
-
-      if (montoInusual) {
-        setAlertaPago({
-          titulo: "Monto inusual",
-          mensaje: `${montoInusual.etiqueta} es Q${montoInusual.monto.toFixed(2)} y supera demasiado el total de la venta. Verifique el monto antes de finalizar.`,
-        });
-        return;
-      }
-    }
-
-    if (!esCredito && diferencia >= LIMITE_CAMBIO_ALTO) {
+    if (!esCredito && diferencia >= LIMITE_CAMBIO_ALTO && !permitirCambioAlto) {
       setAlertaPago({
         titulo: "Cambio inusualmente alto",
         mensaje: `El cambio calculado es Q${diferencia.toFixed(2)}. Verifique los montos ingresados antes de finalizar la venta.`,
+        accion: "confirmar_cambio_alto",
       });
       return;
     }
@@ -646,7 +609,7 @@ export default function ModalCobro({
                   type="text"
                   inputMode="decimal"
                   value={descuentoValor}
-                  onChange={actualizarMonto(setDescuentoValor, "El descuento")}
+                  onChange={actualizarMonto(setDescuentoValor)}
                   placeholder={descuentoTipo === "porcentaje" ? "0%" : "Q0.00"}
                 />
               </label>
@@ -703,10 +666,7 @@ export default function ModalCobro({
                         type="text"
                         inputMode="decimal"
                         value={saldoFavorUsado}
-                        onChange={actualizarMonto(
-                          setSaldoFavorUsado,
-                          "El saldo a favor usado"
-                        )}
+                        onChange={actualizarMonto(setSaldoFavorUsado)}
                         placeholder="Q0.00"
                       />
                     </label>
@@ -718,7 +678,7 @@ export default function ModalCobro({
                     type="text"
                     inputMode="decimal"
                     value={efectivo}
-                    onChange={actualizarMonto(setEfectivo, "El efectivo recibido")}
+                    onChange={actualizarMonto(setEfectivo)}
                     autoFocus
                   />
                 </label>
@@ -730,7 +690,7 @@ export default function ModalCobro({
                       type="text"
                       inputMode="decimal"
                       value={tarjetaMonto}
-                      onChange={actualizarMonto(setTarjetaMonto, "El pago con tarjeta")}
+                      onChange={actualizarMonto(setTarjetaMonto)}
                     />
                   </label>
 
@@ -752,10 +712,7 @@ export default function ModalCobro({
                       type="text"
                       inputMode="decimal"
                       value={transferenciaMonto}
-                      onChange={actualizarMonto(
-                        setTransferenciaMonto,
-                        "La transferencia"
-                      )}
+                      onChange={actualizarMonto(setTransferenciaMonto)}
                     />
                   </label>
 
@@ -813,9 +770,30 @@ export default function ModalCobro({
               <div className="cobro-alerta-icono">!</div>
               <h3>{alertaPago.titulo}</h3>
               <p>{alertaPago.mensaje}</p>
-              <button onClick={() => setAlertaPago(null)}>
-                Entendido
-              </button>
+              {alertaPago.accion === "confirmar_cambio_alto" ? (
+                <div className="cobro-alerta-actions">
+                  <button
+                    type="button"
+                    className="secundario"
+                    onClick={() => setAlertaPago(null)}
+                  >
+                    Revisar montos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAlertaPago(null);
+                      confirmarPago(true);
+                    }}
+                  >
+                    Continuar venta
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setAlertaPago(null)}>
+                  Entendido
+                </button>
+              )}
             </div>
           </div>
         )}

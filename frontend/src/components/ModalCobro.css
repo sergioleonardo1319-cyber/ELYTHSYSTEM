@@ -527,6 +527,21 @@
   padding: 0 22px;
 }
 
+.cobro-alerta-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.cobro-alerta-actions button {
+  flex: 1;
+}
+
+.cobro-alerta-actions button.secundario {
+  background: #334155;
+  color: #f8fafc;
+}
+
 @media (max-width: 640px) {
   .cobro-contenido,
   .cobro-resumen,
