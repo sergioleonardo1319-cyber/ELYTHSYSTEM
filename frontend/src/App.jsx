@@ -1611,6 +1611,7 @@ export default function App() {
       ) {
         setProductoComplementos(producto);
         setGruposComplementos(Array.isArray(data) ? data : []);
+        setBusquedaPOS("");
         return;
       }
     } catch (error) {
@@ -1618,6 +1619,7 @@ export default function App() {
     }
 
     agregarAlCarrito(producto);
+    setBusquedaPOS("");
   };
 
   const agregarProductoConComplementos = (producto, configuracion) => {
