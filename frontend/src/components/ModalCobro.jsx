@@ -9,6 +9,10 @@ export default function ModalCobro({
   onCancelar,
   onConfirmar,
 }) {
+  const LIMITE_CAMBIO_ALTO = 100;
+  const LIMITE_MONTO_INDIVIDUAL = 100;
+  const LIMITE_EXCESO_INDIVIDUAL = 50;
+
   const [efectivo, setEfectivo] = useState("");
   const [tarjetaMonto, setTarjetaMonto] = useState("");
   const [transferenciaMonto, setTransferenciaMonto] = useState("");
@@ -124,7 +128,10 @@ export default function ModalCobro({
   const validarMontoDigitado = (valor, etiqueta) => {
     const monto = Number(valor || 0);
 
-    if (monto > 0 && monto - totalFinal >= 100) {
+    if (
+      monto >= LIMITE_MONTO_INDIVIDUAL &&
+      monto - totalFinal >= LIMITE_EXCESO_INDIVIDUAL
+    ) {
       setAlertaPago({
         titulo: "Monto inusual",
         mensaje: `${etiqueta} es Q${monto.toFixed(2)} y supera demasiado el total de la venta. Verifique el monto antes de continuar.`,
@@ -175,6 +182,11 @@ export default function ModalCobro({
     const esCredito = tipoComprobante === "Credito";
     const saldoFavorDisponible = Number(clienteSeleccionado?.saldo_favor || 0);
     const saldoFavorFinal = esCredito ? 0 : Number(saldoFavorUsado || 0);
+    const montosPago = [
+      { etiqueta: "El efectivo recibido", monto: Number(efectivo || 0) },
+      { etiqueta: "El pago con tarjeta", monto: Number(tarjetaMonto || 0) },
+      { etiqueta: "La transferencia", monto: Number(transferenciaMonto || 0) },
+    ];
 
     if (esCredito) {
       if (!clienteSeleccionado) {
@@ -251,7 +263,23 @@ export default function ModalCobro({
       return;
     }
 
-    if (!esCredito && diferencia >= 100) {
+    if (!esCredito) {
+      const montoInusual = montosPago.find(
+        (item) =>
+          item.monto >= LIMITE_MONTO_INDIVIDUAL &&
+          item.monto - totalFinal >= LIMITE_EXCESO_INDIVIDUAL
+      );
+
+      if (montoInusual) {
+        setAlertaPago({
+          titulo: "Monto inusual",
+          mensaje: `${montoInusual.etiqueta} es Q${montoInusual.monto.toFixed(2)} y supera demasiado el total de la venta. Verifique el monto antes de finalizar.`,
+        });
+        return;
+      }
+    }
+
+    if (!esCredito && diferencia >= LIMITE_CAMBIO_ALTO) {
       setAlertaPago({
         titulo: "Cambio inusualmente alto",
         mensaje: `El cambio calculado es Q${diferencia.toFixed(2)}. Verifique los montos ingresados antes de finalizar la venta.`,
