@@ -108,6 +108,36 @@ export default function ModalCobro({
     [totalPagado, totalFinal]
   );
 
+  const normalizarMonto = (valor) => {
+    const limpio = String(valor || "")
+      .replace(",", ".")
+      .replace(/[^\d.]/g, "");
+    const partes = limpio.split(".");
+    const enteros = partes[0] || "";
+    const decimales = partes.length > 1 ? partes.slice(1).join("").slice(0, 2) : "";
+
+    if (!enteros && !decimales && limpio.includes(".")) return "0.";
+    if (partes.length > 1) return `${enteros || "0"}.${decimales}`;
+    return enteros;
+  };
+
+  const validarMontoDigitado = (valor, etiqueta) => {
+    const monto = Number(valor || 0);
+
+    if (monto > 0 && monto - totalFinal >= 100) {
+      setAlertaPago({
+        titulo: "Monto inusual",
+        mensaje: `${etiqueta} es Q${monto.toFixed(2)} y supera demasiado el total de la venta. Verifique el monto antes de continuar.`,
+      });
+    }
+  };
+
+  const actualizarMonto = (setter, etiqueta) => (evento) => {
+    const valor = normalizarMonto(evento.target.value);
+    setter(valor);
+    validarMontoDigitado(valor, etiqueta);
+  };
+
   const clienteSeleccionado = useMemo(
     () => clientes.find((cliente) => String(cliente.id) === String(clienteId)),
     [clientes, clienteId]
@@ -217,6 +247,14 @@ export default function ModalCobro({
       setAlertaPago({
         titulo: "Pago incompleto",
         mensaje: `Falta Q${Math.abs(diferencia).toFixed(2)} para completar el pago.`,
+      });
+      return;
+    }
+
+    if (!esCredito && diferencia >= 100) {
+      setAlertaPago({
+        titulo: "Cambio inusualmente alto",
+        mensaje: `El cambio calculado es Q${diferencia.toFixed(2)}. Verifique los montos ingresados antes de finalizar la venta.`,
       });
       return;
     }
@@ -577,11 +615,10 @@ export default function ModalCobro({
                     : "Monto"}
                 </span>
                 <input
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={descuentoValor}
-                  onChange={(e) => setDescuentoValor(e.target.value)}
+                  onChange={actualizarMonto(setDescuentoValor, "El descuento")}
                   placeholder={descuentoTipo === "porcentaje" ? "0%" : "Q0.00"}
                 />
               </label>
@@ -635,15 +672,13 @@ export default function ModalCobro({
                         {Number(clienteSeleccionado.saldo_favor || 0).toFixed(2)}
                       </span>
                       <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max={Math.min(
-                          Number(clienteSeleccionado.saldo_favor || 0),
-                          totalFinal
-                        )}
+                        type="text"
+                        inputMode="decimal"
                         value={saldoFavorUsado}
-                        onChange={(e) => setSaldoFavorUsado(e.target.value)}
+                        onChange={actualizarMonto(
+                          setSaldoFavorUsado,
+                          "El saldo a favor usado"
+                        )}
                         placeholder="Q0.00"
                       />
                     </label>
@@ -652,11 +687,10 @@ export default function ModalCobro({
                 <label className="cobro-field">
                   <span>Efectivo recibido</span>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={efectivo}
-                    onChange={(e) => setEfectivo(e.target.value)}
+                    onChange={actualizarMonto(setEfectivo, "El efectivo recibido")}
                     autoFocus
                   />
                 </label>
@@ -665,11 +699,10 @@ export default function ModalCobro({
                   <label className="cobro-field">
                     <span>Pago con tarjeta</span>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
+                      inputMode="decimal"
                       value={tarjetaMonto}
-                      onChange={(e) => setTarjetaMonto(e.target.value)}
+                      onChange={actualizarMonto(setTarjetaMonto, "El pago con tarjeta")}
                     />
                   </label>
 
@@ -688,11 +721,13 @@ export default function ModalCobro({
                   <label className="cobro-field">
                     <span>Transferencia</span>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
+                      inputMode="decimal"
                       value={transferenciaMonto}
-                      onChange={(e) => setTransferenciaMonto(e.target.value)}
+                      onChange={actualizarMonto(
+                        setTransferenciaMonto,
+                        "La transferencia"
+                      )}
                     />
                   </label>
 
