@@ -346,32 +346,35 @@ export default function VentasDiarias({ user }) {
                         <td>Q{(esCredito ? Number(venta.total || 0) : 0).toFixed(2)}</td>
                         <td>Q{Number(venta.total || 0).toFixed(2)}</td>
                         <td>{venta.usuario_nombre || "-"}</td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setVentaAbierta(
-                                ventaAbierta === venta.id ? null : venta.id
-                              )
-                            }
-                          >
-                            {ventaAbierta === venta.id ? "Ocultar" : "Detalle"}
-                          </button>
-                          {venta.estado !== "anulada" && (
+                        <td className="ventas-admin-acciones">
+                          <div className="ventas-admin-acciones-stack">
                             <button
                               type="button"
-                              className="ventas-admin-anular"
-                              onClick={() => {
-                                setVentaAnular(venta);
-                                setAnulacion({
-                                  motivo: "",
-                                  password_admin: "",
-                                });
-                              }}
+                              className="ventas-admin-btn-detalle"
+                              onClick={() =>
+                                setVentaAbierta(
+                                  ventaAbierta === venta.id ? null : venta.id
+                                )
+                              }
                             >
-                              Anular
+                              {ventaAbierta === venta.id ? "Ocultar" : "Detalle"}
                             </button>
-                          )}
+                            {venta.estado !== "anulada" && (
+                              <button
+                                type="button"
+                                className="ventas-admin-anular"
+                                onClick={() => {
+                                  setVentaAnular(venta);
+                                  setAnulacion({
+                                    motivo: "",
+                                    password_admin: "",
+                                  });
+                                }}
+                              >
+                                Anular
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
 

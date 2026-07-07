@@ -3,6 +3,8 @@
   display: grid;
   gap: 18px;
   padding: 18px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ventas-admin-header {
@@ -150,32 +152,88 @@
 }
 
 .ventas-admin-tabla-wrap {
+  max-width: 100%;
   overflow: auto;
+  scrollbar-width: thin;
 }
 
 .ventas-admin-tabla {
   border-collapse: collapse;
-  min-width: 1380px;
+  min-width: 1240px;
   width: 100%;
 }
 
 .ventas-admin-tabla th {
   background: #f8fafc;
   color: #334155;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 950;
   padding: 13px 12px;
   text-align: left;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .ventas-admin-tabla td {
   border-top: 1px solid #e2e8f0;
   color: #0f172a;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 750;
   padding: 13px 12px;
   vertical-align: top;
+}
+
+.ventas-admin-tabla tbody tr {
+  transition: background 160ms ease;
+}
+
+.ventas-admin-tabla tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.ventas-admin-tabla th:nth-child(1),
+.ventas-admin-tabla td:nth-child(1) {
+  width: 82px;
+  white-space: nowrap;
+}
+
+.ventas-admin-tabla th:nth-child(2),
+.ventas-admin-tabla td:nth-child(2) {
+  width: 98px;
+}
+
+.ventas-admin-tabla th:nth-child(3),
+.ventas-admin-tabla td:nth-child(3) {
+  width: 96px;
+}
+
+.ventas-admin-tabla th:nth-child(4),
+.ventas-admin-tabla td:nth-child(4) {
+  width: 205px;
+}
+
+.ventas-admin-tabla th:nth-child(6),
+.ventas-admin-tabla th:nth-child(7),
+.ventas-admin-tabla th:nth-child(8),
+.ventas-admin-tabla th:nth-child(9),
+.ventas-admin-tabla th:nth-child(10),
+.ventas-admin-tabla td:nth-child(6),
+.ventas-admin-tabla td:nth-child(7),
+.ventas-admin-tabla td:nth-child(8),
+.ventas-admin-tabla td:nth-child(9),
+.ventas-admin-tabla td:nth-child(10) {
+  width: 86px;
+  white-space: nowrap;
+}
+
+.ventas-admin-tabla th:nth-child(11),
+.ventas-admin-tabla td:nth-child(11) {
+  width: 165px;
+}
+
+.ventas-admin-tabla th:last-child,
+.ventas-admin-tabla td:last-child {
+  width: 116px;
 }
 
 .ventas-admin-tabla tr.venta-anulada td {
@@ -194,14 +252,39 @@
   padding: 4px 8px;
 }
 
-.ventas-admin-tabla button.ventas-admin-anular {
-  background: #dc2626;
-  margin-left: 10px;
-}
-
 .ventas-admin-productos {
   max-width: 320px;
   white-space: normal;
+  line-height: 1.35;
+}
+
+.ventas-admin-acciones {
+  min-width: 112px;
+}
+
+.ventas-admin-acciones-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ventas-admin-tabla .ventas-admin-acciones-stack button {
+  width: 100%;
+  min-height: 34px;
+  border-radius: 10px;
+  font-size: 12px;
+  padding: 0 12px;
+}
+
+.ventas-admin-tabla .ventas-admin-btn-detalle {
+  background: #2563eb;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, .16);
+}
+
+.ventas-admin-tabla button.ventas-admin-anular {
+  background: #dc2626;
+  box-shadow: 0 8px 18px rgba(220, 38, 38, .14);
+  margin-left: 0;
 }
 
 .ventas-admin-detalle-row td {
