@@ -537,6 +537,7 @@ export default function Admin({ onImpersonar }) {
   const refrescarSandbox = async () => {
     try {
       setRefrescandoSandbox(true);
+      setConfirmarRefresh(false);
 
       const token = sessionStorage.getItem("token");
       const res = await fetch(`${API}/admin/sandbox/refresh`, {
@@ -552,7 +553,6 @@ export default function Admin({ onImpersonar }) {
         throw new Error(data.error || "No fue posible refrescar sandbox");
       }
 
-      setConfirmarRefresh(false);
       mostrarToast("Sandbox actualizado desde productivo");
     } catch (error) {
       console.error(error);
