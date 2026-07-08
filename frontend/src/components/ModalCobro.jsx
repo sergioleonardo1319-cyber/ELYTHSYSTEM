@@ -751,7 +751,7 @@ export default function ModalCobro({
 
           <button
             className="cobro-btn-primary"
-            onClick={confirmarPago}
+            onClick={() => confirmarPago()}
             disabled={procesando}
           >
             {procesando ? "Procesando venta..." : "Confirmar pago"}
