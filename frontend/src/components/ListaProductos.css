@@ -390,5 +390,16 @@ body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-productos-panel {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-padding-top: 10px;
+  scroll-padding-bottom: 14px;
   -webkit-overflow-scrolling: touch;
+}
+
+body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-productos-panel {
+  padding-top: 10px;
+  padding-bottom: 12px;
+}
+
+body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-productos-grid {
+  padding-bottom: 16px;
 }

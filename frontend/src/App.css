@@ -120,9 +120,9 @@ body.pos-device-sunmi-d3 .pos-page {
 }
 
 body.pos-device-sunmi-d3 .pos-page {
-  grid-template-rows: 58px minmax(0, 1fr) 42px;
-  gap: 4px;
-  padding: 4px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 6px;
 }
 
 body.pos-device-android .sandbox-mode .pos-page,
@@ -167,6 +167,7 @@ body.pos-device-sunmi-d3 .app-shell.pos-mode {
 body.pos-device-android .app-shell.pos-mode .pos-page,
 body.pos-device-sunmi .app-shell.pos-mode .pos-page,
 body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-page {
+  grid-template-rows: auto minmax(0, 1fr) auto;
   height: var(--pos-viewport-height, 100svh);
   min-height: 0;
   max-height: var(--pos-viewport-height, 100svh);
