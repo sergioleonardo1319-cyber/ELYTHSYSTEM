@@ -8682,18 +8682,35 @@ app.post(
       creditosVenta.reduce((sum, credito) => sum + Number(credito.monto || 0), 0)
     );
     const montoVentaProductos = redondearMoneda(total - montoCreditosCobrados);
-    const efectivoNeto = esCredito
-      ? 0
-      : redondearMoneda(
-          Number(pagoFinal.efectivo_recibido || 0) -
-          Number(pagoFinal.cambio || 0)
-        );
-    const tarjetaMonto = esCredito
-      ? 0
-      : redondearMoneda(Number(pagoFinal.tarjeta_monto || 0));
-    const transferenciaMonto = esCredito
-      ? 0
-      : redondearMoneda(Number(pagoFinal.transferencia_monto || 0));
+    const calcularPagosNetos = () => {
+      if (esCredito) {
+        return {
+          efectivo: 0,
+          tarjeta: 0,
+          transferencia: 0,
+        };
+      }
+
+      let cambioPendiente = redondearMoneda(Number(pagoFinal.cambio || 0));
+
+      const descontarCambio = (monto) => {
+        const bruto = redondearMoneda(Number(monto || 0));
+        const descuento = Math.min(bruto, cambioPendiente);
+        cambioPendiente = redondearMoneda(cambioPendiente - descuento);
+        return redondearMoneda(bruto - descuento);
+      };
+
+      return {
+        efectivo: descontarCambio(pagoFinal.efectivo_recibido),
+        tarjeta: descontarCambio(pagoFinal.tarjeta_monto),
+        transferencia: descontarCambio(pagoFinal.transferencia_monto),
+      };
+    };
+
+    const pagosNetos = calcularPagosNetos();
+    const efectivoNeto = pagosNetos.efectivo;
+    const tarjetaMonto = pagosNetos.tarjeta;
+    const transferenciaMonto = pagosNetos.transferencia;
     const ventaFactura = tipoComprobante === "Factura" && montoVentaProductos > 0;
     const ventaNeta = ventaFactura
       ? redondearMoneda(montoVentaProductos / 1.12)

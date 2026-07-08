@@ -202,6 +202,20 @@ export default function App() {
     total,
   } = useCarrito(setAviso);
 
+  useEffect(() => {
+    if (user) return;
+
+    vaciarCarrito();
+    setMostrarModalVaciar(false);
+    setMostrarModalCobro(false);
+    setComprobantePendiente(null);
+    setProductoComplementos(null);
+    setGruposComplementos([]);
+    setCategoriaSeleccionada("");
+    setBusquedaPOS("");
+    setCajaActual(null);
+  }, [user]);
+
   // =========================
   // LOAD DATA
   // =========================
