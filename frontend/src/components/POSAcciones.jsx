@@ -32,6 +32,8 @@ const totalDenominaciones = (denominaciones) =>
     0
   );
 
+const DIAGNOSTICO_IMPRESORA_KEY = "elyth_diagnostico_impresora_activo";
+
 export default function POSAcciones({
   user,
   imprimirTicket,
@@ -66,6 +68,13 @@ export default function POSAcciones({
   const [diagnosticoImpresora, setDiagnosticoImpresora] = useState(null);
   const [probandoImpresora, setProbandoImpresora] = useState(false);
   const [diagnosticoCopiado, setDiagnosticoCopiado] = useState(false);
+  const [diagnosticoHabilitado, setDiagnosticoHabilitado] = useState(() => {
+    try {
+      return localStorage.getItem(DIAGNOSTICO_IMPRESORA_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [mensaje, setMensaje] = useState("");
   const [aviso, setAviso] = useState(null);
   const [ventaAnular, setVentaAnular] = useState(null);
@@ -97,6 +106,16 @@ export default function POSAcciones({
 
   const leerEstadoImpresora = async () =>
     obtenerEstadoImpresoraPOS({ user });
+
+  const cambiarDiagnosticoHabilitado = (activo) => {
+    setDiagnosticoHabilitado(activo);
+
+    try {
+      localStorage.setItem(DIAGNOSTICO_IMPRESORA_KEY, String(activo));
+    } catch {
+      // El modo soporte sigue activo en memoria aunque el navegador no permita guardar.
+    }
+  };
 
   const abrirDiagnosticoImpresora = async () => {
     setAbierto(false);
@@ -429,10 +448,41 @@ export default function POSAcciones({
     }
   };
 
+  const abrirGasto = async () => {
+    setAbierto(false);
+    const caja = cajaActual?.abierta
+      ? cajaActual
+      : await cargarCajaActual({ abrirModal: false });
+
+    if (!caja?.abierta) {
+      setAviso({
+        tipo: "info",
+        titulo: "Caja sin apertura",
+        mensaje: "Debe aperturar caja antes de registrar gastos.",
+      });
+      return;
+    }
+
+    setModal("gasto");
+  };
+
   const registrarGasto = async (e) => {
     e.preventDefault();
 
     if (registrandoGasto) return;
+
+    const caja = cajaActual?.abierta
+      ? cajaActual
+      : await cargarCajaActual({ abrirModal: false });
+
+    if (!caja?.abierta) {
+      setAviso({
+        tipo: "info",
+        titulo: "Caja sin apertura",
+        mensaje: "Debe aperturar caja antes de registrar gastos.",
+      });
+      return;
+    }
 
     setRegistrandoGasto(true);
 
@@ -664,12 +714,23 @@ export default function POSAcciones({
           <button onClick={() => { setAbierto(false); cargarCreditos(); }}>
             Cobrar credito
           </button>
-          <button onClick={() => { setAbierto(false); setModal("gasto"); }}>
+          <button onClick={abrirGasto}>
             Registrar gasto
           </button>
-          <button onClick={abrirDiagnosticoImpresora}>
-            Diagnostico impresora
-          </button>
+          <label className="pos-soporte-impresora">
+            <input
+              type="checkbox"
+              checked={diagnosticoHabilitado}
+              onChange={(e) => cambiarDiagnosticoHabilitado(e.target.checked)}
+            />
+            <span>Soporte impresora</span>
+            <small>{diagnosticoHabilitado ? "Diagnostico activo" : "Oculto"}</small>
+          </label>
+          {diagnosticoHabilitado && (
+            <button onClick={abrirDiagnosticoImpresora}>
+              Diagnostico impresora
+            </button>
+          )}
         </div>
       )}
 
