@@ -35,6 +35,7 @@ export default function Admin({ onImpersonar }) {
     correo: "",
     imprimir_factura_auto: false,
     imprimir_comanda_auto: false,
+    habilitar_diagnostico_impresora: false,
   });
 
   const [usuario, setUsuario] = useState({
@@ -264,6 +265,7 @@ export default function Admin({ onImpersonar }) {
         correo: "",
         imprimir_factura_auto: false,
         imprimir_comanda_auto: false,
+        habilitar_diagnostico_impresora: false,
       });
       await cargarEmpresas();
       mostrarToast("Empresa creada correctamente");
@@ -285,6 +287,10 @@ export default function Admin({ onImpersonar }) {
           campo === "imprimir_comanda_auto"
             ? valor
             : empresa.imprimir_comanda_auto === true,
+        habilitar_diagnostico_impresora:
+          campo === "habilitar_diagnostico_impresora"
+            ? valor
+            : empresa.habilitar_diagnostico_impresora === true,
       };
 
       const res = await fetch(
@@ -1003,6 +1009,23 @@ export default function Admin({ onImpersonar }) {
                   <small>Automaticamente si hay productos con pantalla</small>
                 </span>
               </label>
+
+              <label className="admin-switch">
+                <input
+                  type="checkbox"
+                  checked={empresaForm.habilitar_diagnostico_impresora}
+                  onChange={(e) =>
+                    setEmpresaForm({
+                      ...empresaForm,
+                      habilitar_diagnostico_impresora: e.target.checked,
+                    })
+                  }
+                />
+                <span>
+                  <strong>Diagnostico impresora</strong>
+                  <small>Mostrar herramienta de soporte en POS</small>
+                </span>
+              </label>
             </div>
           </div>
 
@@ -1369,6 +1392,23 @@ export default function Admin({ onImpersonar }) {
                         />
                         <span>
                           <strong>Comanda auto</strong>
+                        </span>
+                      </label>
+
+                      <label className="admin-switch admin-switch-inline">
+                        <input
+                          type="checkbox"
+                          checked={empresa.habilitar_diagnostico_impresora === true}
+                          onChange={(e) =>
+                            actualizarConfiguracionPOS(
+                              empresa,
+                              "habilitar_diagnostico_impresora",
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <span>
+                          <strong>Diagnostico impresora</strong>
                         </span>
                       </label>
                     </div>
