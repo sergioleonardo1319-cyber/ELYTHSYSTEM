@@ -679,6 +679,7 @@ const consultarComparacionEmpresa = async (pool, empresaId) => {
         imagen_url
       FROM productos
       WHERE empresa_id = $1
+      AND COALESCE(eliminado, false) = false
       ORDER BY nombre
       `,
       [empresaId]
@@ -1007,6 +1008,7 @@ const promoverProductos = async (client, empresaId) => {
       categoria
     FROM productos
     WHERE empresa_id = $1
+    AND COALESCE(eliminado, false) = false
     ORDER BY id
     `,
     [empresaId]
@@ -1025,6 +1027,7 @@ const promoverProductos = async (client, empresaId) => {
       SELECT id
       FROM productos
       WHERE empresa_id = $1
+      AND COALESCE(eliminado, false) = false
       AND (
         (NULLIF(TRIM($2), '') IS NOT NULL AND LOWER(COALESCE(codigo, '')) = LOWER($2))
         OR
@@ -1063,7 +1066,10 @@ const promoverProductos = async (client, empresaId) => {
           familia = $20,
           cuenta_contable = $21,
           centro_costo = $22,
-          categoria = $23
+          categoria = $23,
+          eliminado = false,
+          eliminado_en = NULL,
+          eliminado_por = NULL
         WHERE id = $24
         AND empresa_id = $25
         `,
@@ -1174,6 +1180,7 @@ const promoverComplementos = async (client, empresaId) => {
     SELECT id, codigo, nombre
     FROM productos
     WHERE empresa_id = $1
+    AND COALESCE(eliminado, false) = false
     `,
     [empresaId]
   );
@@ -1183,6 +1190,7 @@ const promoverComplementos = async (client, empresaId) => {
     SELECT id, codigo, nombre
     FROM productos
     WHERE empresa_id = $1
+    AND COALESCE(eliminado, false) = false
     `,
     [empresaId]
   );
@@ -1485,6 +1493,21 @@ const inicializarContabilidad = async () => {
     await db.query(`
       ALTER TABLE empresas
       ADD COLUMN IF NOT EXISTS habilitar_diagnostico_impresora BOOLEAN DEFAULT false
+    `);
+
+    await db.query(`
+      ALTER TABLE IF EXISTS productos
+      ADD COLUMN IF NOT EXISTS eliminado BOOLEAN DEFAULT false
+    `);
+
+    await db.query(`
+      ALTER TABLE IF EXISTS productos
+      ADD COLUMN IF NOT EXISTS eliminado_en TIMESTAMP
+    `);
+
+    await db.query(`
+      ALTER TABLE IF EXISTS productos
+      ADD COLUMN IF NOT EXISTS eliminado_por INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
     `);
 
     await db.query(`
@@ -3860,6 +3883,7 @@ app.get(
       FROM productos
       WHERE id = $1
       AND empresa_id = $2
+      AND COALESCE(eliminado, false) = false
       `,
       [id, empresaId]
     );
@@ -3935,6 +3959,7 @@ app.post(
       FROM productos
       WHERE id = $1
       AND empresa_id = $2
+      AND COALESCE(eliminado, false) = false
       `,
       [id, empresaId]
     );
@@ -4073,6 +4098,7 @@ app.get(
       SELECT *
       FROM productos
       WHERE empresa_id = $1
+      AND COALESCE(eliminado, false) = false
       ORDER BY id DESC
       `,
       [empresaId]
@@ -4421,17 +4447,31 @@ app.delete(
 
     const { id } = req.params;
 
-    await db.query(
+    const result = await db.query(
       `
-      DELETE FROM productos
+      UPDATE productos
+      SET
+        eliminado = true,
+        eliminado_en = NOW(),
+        eliminado_por = $3,
+        habilitado_venta = false
       WHERE id = $1
       AND empresa_id = $2
+      AND COALESCE(eliminado, false) = false
+      RETURNING id
       `,
       [
         id,
         obtenerEmpresaId(req),
+        req.user.id,
       ]
     );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Producto no encontrado",
+      });
+    }
 
     res.json({
       mensaje: "Producto eliminado",
@@ -4504,6 +4544,7 @@ app.post(
       FROM productos
       WHERE id = $1
       AND empresa_id = $2
+      AND COALESCE(eliminado, false) = false
       FOR UPDATE
       `,
       [
@@ -4999,6 +5040,7 @@ app.post(
         FROM productos
         WHERE id = $1
         AND empresa_id = $2
+        AND COALESCE(eliminado, false) = false
         FOR UPDATE
         `,
         [
@@ -8011,6 +8053,7 @@ app.post(
         FROM productos
         WHERE id = $1
         AND empresa_id = $2
+        AND COALESCE(eliminado, false) = false
         FOR UPDATE
         `,
         [
