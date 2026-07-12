@@ -466,5 +466,10 @@ body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-carrito-panel {
 
 body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-carrito-panel {
   padding-top: 14px;
-  padding-bottom: 14px;
+  padding-bottom: 34px;
+  scroll-padding-bottom: 34px;
+}
+
+body.pos-device-sunmi-d3 .app-shell.pos-mode .pos-carrito-cobrar {
+  margin-bottom: 28px;
 }
