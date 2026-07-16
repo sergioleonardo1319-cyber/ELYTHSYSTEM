@@ -562,3 +562,207 @@
     width: 100%;
   }
 }
+
+/* Mejora visual del cobro: campos mas legibles sin tocar la logica. */
+.cobro-overlay {
+  padding: 14px;
+}
+
+.cobro-modal {
+  width: min(1220px, 100%);
+  max-height: calc(100dvh - 28px);
+  padding: 18px;
+}
+
+.cobro-header {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+}
+
+.cobro-header h2 {
+  font-size: 25px;
+}
+
+.cobro-contenido {
+  gap: 16px;
+  padding-right: 4px;
+  scroll-padding-top: 18px;
+  scroll-padding-bottom: 18px;
+}
+
+.cobro-seccion,
+.cobro-bloque {
+  padding: 14px;
+}
+
+.cobro-seccion h3,
+.cobro-bloque-header h3 {
+  font-size: 18px;
+}
+
+.cobro-bloque {
+  margin-bottom: 12px;
+}
+
+.cobro-resumen,
+.cobro-descuento-compacto,
+.cobro-pago-linea,
+.cobro-tarjeta-linea,
+.cobro-metodos {
+  gap: 10px;
+}
+
+.cobro-resumen {
+  margin-bottom: 10px;
+}
+
+.cobro-resumen div,
+.cobro-cliente-resumen,
+.cobro-busqueda-vacia,
+.cobro-busqueda-ayuda,
+.cobro-credito-info {
+  padding: 10px 12px;
+}
+
+.cobro-resumen span,
+.cobro-field span,
+.cobro-cambio span {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.cobro-resumen b {
+  font-size: 18px;
+}
+
+.cobro-field {
+  margin-bottom: 10px;
+}
+
+.cobro-field input,
+.cobro-field select,
+.cobro-field textarea {
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 850;
+  padding: 9px 12px;
+}
+
+.cobro-field textarea {
+  height: 52px;
+  min-height: 52px;
+}
+
+.cobro-nit-linea {
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 92px 62px;
+  margin-bottom: 10px;
+}
+
+.cobro-mini-btn,
+.cobro-metodos button {
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.cobro-mini-btn {
+  padding: 0 12px;
+}
+
+.cobro-cambio {
+  padding: 11px 13px;
+}
+
+.cobro-cambio strong {
+  font-size: 22px;
+}
+
+.cobro-clientes-resultados {
+  gap: 8px;
+  margin-bottom: 10px;
+  max-height: 175px;
+}
+
+.cobro-clientes-resultados button {
+  min-height: 48px;
+  padding: 9px 10px;
+}
+
+.cobro-clientes-resultados strong,
+.cobro-cliente-resumen strong,
+.cobro-credito-info strong {
+  font-size: 14px;
+}
+
+.cobro-clientes-resultados span,
+.cobro-cliente-resumen span,
+.cobro-credito-info span,
+.cobro-busqueda-vacia,
+.cobro-busqueda-ayuda {
+  font-size: 14px;
+}
+
+.cobro-clientes-resultados small,
+.cobro-cliente-resumen small {
+  font-size: 12px;
+}
+
+.cobro-comanda-box {
+  gap: 10px;
+}
+
+.cobro-comanda-box h3 {
+  font-size: 17px;
+}
+
+.cobro-actions {
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.cobro-btn-secondary,
+.cobro-btn-primary {
+  min-height: 48px;
+  font-size: 16px;
+  padding: 0 22px;
+}
+
+body.pos-device-android .cobro-overlay,
+body.pos-device-sunmi .cobro-overlay,
+body.pos-device-sunmi-d3 .cobro-overlay {
+  align-items: flex-start;
+  padding: 8px;
+}
+
+body.pos-device-android .cobro-modal,
+body.pos-device-sunmi .cobro-modal,
+body.pos-device-sunmi-d3 .cobro-modal {
+  width: calc(100vw - 16px);
+  max-height: calc(var(--pos-viewport-height, 100svh) - 16px);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+body.pos-device-android .cobro-contenido,
+body.pos-device-sunmi .cobro-contenido,
+body.pos-device-sunmi-d3 .cobro-contenido {
+  scroll-padding-top: 22px;
+  scroll-padding-bottom: 80px;
+}
+
+body.pos-device-sunmi-d3 .cobro-field input,
+body.pos-device-sunmi-d3 .cobro-field select,
+body.pos-device-sunmi-d3 .cobro-field textarea {
+  min-height: 46px;
+  font-size: 17px;
+}
+
+@media (max-width: 900px), (max-height: 620px) {
+  .cobro-overlay {
+    align-items: flex-start;
+  }
+
+  .cobro-modal {
+    max-height: calc(100dvh - 16px);
+  }
+}
