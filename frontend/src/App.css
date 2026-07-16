@@ -201,6 +201,30 @@ body.pos-device-sunmi-d3 .app-shell.sandbox-mode.pos-mode .pos-page {
   letter-spacing: 0.08em;
 }
 
+body:not(.pos-device-android):not(.pos-device-sunmi):not(.pos-device-sunmi-d3)
+  .app-shell.pos-mode
+  .pos-categorias-panel,
+body:not(.pos-device-android):not(.pos-device-sunmi):not(.pos-device-sunmi-d3)
+  .app-shell.pos-mode
+  .pos-productos-panel,
+body:not(.pos-device-android):not(.pos-device-sunmi):not(.pos-device-sunmi-d3)
+  .app-shell.pos-mode
+  .pos-carrito-panel {
+  scrollbar-width: none;
+}
+
+body:not(.pos-device-android):not(.pos-device-sunmi):not(.pos-device-sunmi-d3)
+  .app-shell.pos-mode
+  .pos-categorias-panel::-webkit-scrollbar,
+body:not(.pos-device-android):not(.pos-device-sunmi):not(.pos-device-sunmi-d3)
+  .app-shell.pos-mode
+  .pos-productos-panel::-webkit-scrollbar,
+body:not(.pos-device-android):not(.pos-device-sunmi):not(.pos-device-sunmi-d3)
+  .app-shell.pos-mode
+  .pos-carrito-panel::-webkit-scrollbar {
+  display: none;
+}
+
 .sandbox-banner span,
 .sandbox-banner small {
   font-size: 13px;
