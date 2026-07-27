@@ -383,6 +383,13 @@ const inicializarCaja = async () => {
     `);
 
     await db.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS cajas_turnos_usuario_empresa_abierta_idx
+      ON cajas_turnos (empresa_id, usuario_id)
+      WHERE estado = 'abierta'
+      AND usuario_id IS NOT NULL
+    `);
+
+    await db.query(`
       ALTER TABLE caja_gastos
       ADD COLUMN IF NOT EXISTS caja_turno_id INTEGER REFERENCES cajas_turnos(id) ON DELETE SET NULL
     `);
@@ -6080,8 +6087,10 @@ app.post(
     const abierta = await obtenerCajaAbierta(req.user.id, empresaId);
 
     if (abierta) {
-      return res.status(400).json({
-        error: "Ya existe una caja abierta para este usuario",
+      return res.json({
+        ...abierta,
+        ya_abierta: true,
+        mensaje: "Caja ya estaba aperturada",
       });
     }
 
@@ -6152,6 +6161,19 @@ app.post(
 
     res.json(result.rows[0]);
   } catch (error) {
+    if (error.code === "23505") {
+      const empresaId = obtenerEmpresaId(req);
+      const abierta = await obtenerCajaAbierta(req.user.id, empresaId);
+
+      if (abierta) {
+        return res.json({
+          ...abierta,
+          ya_abierta: true,
+          mensaje: "Caja ya estaba aperturada",
+        });
+      }
+    }
+
     console.error(error);
     res.status(500).json({
       error: "Error aperturando caja",
