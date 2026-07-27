@@ -25,6 +25,10 @@ export default function NavbarPOS({
 
   const cargarCumpleaneros = async () => {
     if (!user?.empresa_id || user?.rol === "superadmin") return;
+    if (user?.empresa_habilitar_clientes_credito === false) {
+      setCumpleaneros([]);
+      return;
+    }
 
     try {
       const res = await fetch(`${API}/clientes/cumpleaneros/hoy`, {
@@ -42,7 +46,7 @@ export default function NavbarPOS({
 
   useEffect(() => {
     cargarCumpleaneros();
-  }, [user?.empresa_id]);
+  }, [user?.empresa_id, user?.empresa_habilitar_clientes_credito]);
 
   if (!user) return null;
 
@@ -96,7 +100,9 @@ export default function NavbarPOS({
       {
         label: "Clientes",
         vista: "clientes",
-        visible: puedeVer("admin"),
+        visible:
+          puedeVer("admin") &&
+          user?.empresa_habilitar_clientes_credito !== false,
       },
       {
         label: "Compras",

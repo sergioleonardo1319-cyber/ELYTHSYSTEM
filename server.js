@@ -636,7 +636,8 @@ const consultarComparacionEmpresa = async (pool, empresaId) => {
         correo,
         imprimir_factura_auto,
         imprimir_comanda_auto,
-        habilitar_diagnostico_impresora
+        habilitar_diagnostico_impresora,
+        COALESCE(habilitar_clientes_credito, true) AS habilitar_clientes_credito
       FROM empresas
       WHERE id = $1
       `,
@@ -780,6 +781,7 @@ const compararAmbientesEmpresa = async (empresaId) => {
           "imprimir_factura_auto",
           "imprimir_comanda_auto",
           "habilitar_diagnostico_impresora",
+          "habilitar_clientes_credito",
         ]
       ),
       categorias: obtenerDiferencias(
@@ -859,7 +861,8 @@ const promoverConfiguracionPOS = async (client, empresaId) => {
       correo,
       imprimir_factura_auto,
       imprimir_comanda_auto,
-      habilitar_diagnostico_impresora
+      habilitar_diagnostico_impresora,
+      COALESCE(habilitar_clientes_credito, true) AS habilitar_clientes_credito
     FROM empresas
     WHERE id = $1
     `,
@@ -885,8 +888,9 @@ const promoverConfiguracionPOS = async (client, empresaId) => {
       correo = $7,
       imprimir_factura_auto = $8,
       imprimir_comanda_auto = $9,
-      habilitar_diagnostico_impresora = $10
-    WHERE id = $11
+      habilitar_diagnostico_impresora = $10,
+      habilitar_clientes_credito = $11
+    WHERE id = $12
     `,
     [
       empresa.nombre,
@@ -899,6 +903,7 @@ const promoverConfiguracionPOS = async (client, empresaId) => {
       empresa.imprimir_factura_auto === true,
       empresa.imprimir_comanda_auto === true,
       empresa.habilitar_diagnostico_impresora === true,
+      empresa.habilitar_clientes_credito !== false,
       empresaId,
     ]
   );
@@ -1503,6 +1508,11 @@ const inicializarContabilidad = async () => {
     `);
 
     await db.query(`
+      ALTER TABLE empresas
+      ADD COLUMN IF NOT EXISTS habilitar_clientes_credito BOOLEAN DEFAULT true
+    `);
+
+    await db.query(`
       ALTER TABLE IF EXISTS productos
       ADD COLUMN IF NOT EXISTS eliminado BOOLEAN DEFAULT false
     `);
@@ -1792,7 +1802,8 @@ app.post("/login", async (req, res) => {
         e.afiliacion_iva AS empresa_afiliacion_iva,
         e.imprimir_factura_auto AS empresa_imprimir_factura_auto,
         e.imprimir_comanda_auto AS empresa_imprimir_comanda_auto,
-        e.habilitar_diagnostico_impresora AS empresa_habilitar_diagnostico_impresora
+        e.habilitar_diagnostico_impresora AS empresa_habilitar_diagnostico_impresora,
+        COALESCE(e.habilitar_clientes_credito, true) AS empresa_habilitar_clientes_credito
       FROM usuarios u
       LEFT JOIN empresas e
         ON e.id = u.empresa_id
@@ -1846,6 +1857,8 @@ app.post("/login", async (req, res) => {
         user.empresa_imprimir_comanda_auto === true,
       empresa_habilitar_diagnostico_impresora:
         user.empresa_habilitar_diagnostico_impresora === true,
+      empresa_habilitar_clientes_credito:
+        user.empresa_habilitar_clientes_credito === true,
     };
 
     // TOKEN CORRECTO
@@ -1980,7 +1993,8 @@ app.post(
           afiliacion_iva,
           imprimir_factura_auto,
           imprimir_comanda_auto,
-          habilitar_diagnostico_impresora
+          habilitar_diagnostico_impresora,
+          COALESCE(habilitar_clientes_credito, true) AS habilitar_clientes_credito
         FROM empresas
         WHERE id = $1
         `,
@@ -2034,6 +2048,8 @@ app.post(
           empresa.imprimir_comanda_auto === true,
         empresa_habilitar_diagnostico_impresora:
           empresa.habilitar_diagnostico_impresora === true,
+        empresa_habilitar_clientes_credito:
+          empresa.habilitar_clientes_credito === true,
         soporte_activo: true,
         soporte_superadmin_id: req.user.id,
         soporte_superadmin_nombre: req.user.nombre || "Superadmin",
@@ -2553,6 +2569,7 @@ app.post(
       imprimir_factura_auto,
       imprimir_comanda_auto,
       habilitar_diagnostico_impresora,
+      habilitar_clientes_credito,
     } = req.body;
 
     const camposRequeridos = {
@@ -2581,9 +2598,10 @@ app.post(
         correo,
         imprimir_factura_auto,
         imprimir_comanda_auto,
-        habilitar_diagnostico_impresora
+        habilitar_diagnostico_impresora,
+        habilitar_clientes_credito
       )
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
       RETURNING *
       `,
       [
@@ -2597,6 +2615,7 @@ app.post(
         imprimir_factura_auto === true,
         imprimir_comanda_auto === true,
         habilitar_diagnostico_impresora === true,
+        habilitar_clientes_credito !== false,
       ]
     );
 
@@ -5222,6 +5241,7 @@ app.patch(
       imprimir_factura_auto,
       imprimir_comanda_auto,
       habilitar_diagnostico_impresora,
+      habilitar_clientes_credito,
     } = req.body;
 
     const result = await db.query(
@@ -5230,14 +5250,16 @@ app.patch(
       SET
         imprimir_factura_auto = $1,
         imprimir_comanda_auto = $2,
-        habilitar_diagnostico_impresora = $3
-      WHERE id = $4
+        habilitar_diagnostico_impresora = $3,
+        habilitar_clientes_credito = $4
+      WHERE id = $5
       RETURNING *
       `,
       [
         imprimir_factura_auto === true,
         imprimir_comanda_auto === true,
         habilitar_diagnostico_impresora === true,
+        habilitar_clientes_credito !== false,
         id,
       ]
     );

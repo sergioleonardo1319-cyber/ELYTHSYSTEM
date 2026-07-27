@@ -6,6 +6,7 @@ export default function ModalCobro({
   visible,
   total,
   tieneProductosPreparacion = false,
+  clientesCreditoHabilitado = true,
   onCancelar,
   onConfirmar,
 }) {
@@ -63,18 +64,22 @@ export default function ModalCobro({
           .toUpperCase()}`
       );
 
-      fetch(`${API}/clientes?activos=1`, {
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setClientes(Array.isArray(data) ? data : []);
+      if (clientesCreditoHabilitado) {
+        fetch(`${API}/clientes?activos=1`, {
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          },
         })
-        .catch(() => setClientes([]));
+          .then((res) => res.json())
+          .then((data) => {
+            setClientes(Array.isArray(data) ? data : []);
+          })
+          .catch(() => setClientes([]));
+      } else {
+        setClientes([]);
+      }
     }
-  }, [visible]);
+  }, [visible, clientesCreditoHabilitado]);
 
   const redondear = (valor) =>
     Math.round(Number(valor || 0) * 100) / 100;
@@ -164,7 +169,16 @@ export default function ModalCobro({
 
     const esCredito = tipoComprobante === "Credito";
     const saldoFavorDisponible = Number(clienteSeleccionado?.saldo_favor || 0);
-    const saldoFavorFinal = esCredito ? 0 : Number(saldoFavorUsado || 0);
+    const saldoFavorFinal =
+      esCredito || !clientesCreditoHabilitado ? 0 : Number(saldoFavorUsado || 0);
+
+    if (esCredito && !clientesCreditoHabilitado) {
+      setAlertaPago({
+        titulo: "Credito deshabilitado",
+        mensaje: "Esta empresa no tiene habilitado clientes y credito.",
+      });
+      return;
+    }
 
     if (esCredito) {
       if (!clienteSeleccionado) {
@@ -207,7 +221,7 @@ export default function ModalCobro({
       }
     }
 
-    if (saldoFavorFinal > 0 && !clienteSeleccionado) {
+    if (clientesCreditoHabilitado && saldoFavorFinal > 0 && !clienteSeleccionado) {
       setAlertaPago({
         titulo: "Cliente requerido",
         mensaje: "Seleccione un cliente para usar saldo a favor.",
@@ -329,6 +343,8 @@ export default function ModalCobro({
   };
 
   const seleccionarCliente = (valor) => {
+    if (!clientesCreditoHabilitado) return;
+
     setClienteId(valor);
 
     if (!valor) {
@@ -409,9 +425,12 @@ export default function ModalCobro({
   };
 
   const cambiarTipoComprobante = (tipo) => {
-    setTipoComprobante(tipo);
+    const tipoFinal =
+      tipo === "Credito" && !clientesCreditoHabilitado ? "Factura" : tipo;
 
-    if (tipo === "Credito") {
+    setTipoComprobante(tipoFinal);
+
+    if (tipoFinal === "Credito") {
       setEfectivo("");
       setTarjetaMonto("");
       setTransferenciaMonto("");
@@ -493,82 +512,84 @@ export default function ModalCobro({
               </label>
             </div>
 
-            <div className="cobro-bloque">
-              <div className="cobro-bloque-header">
-                <h3>Cliente registrado</h3>
+            {clientesCreditoHabilitado && (
+              <div className="cobro-bloque">
+                <div className="cobro-bloque-header">
+                  <h3>Cliente registrado</h3>
+                  {clienteSeleccionado && (
+                    <button
+                      type="button"
+                      onClick={() => seleccionarCliente("")}
+                    >
+                      Quitar
+                    </button>
+                  )}
+                </div>
+
+                {!clienteSeleccionado && (
+                  <>
+                    <label className="cobro-field">
+                      <span>Buscar cliente interno</span>
+                      <input
+                        value={clienteBusqueda}
+                        onChange={(e) => {
+                          setClienteBusqueda(e.target.value);
+                          setClienteId("");
+                          setSaldoFavorUsado("");
+                        }}
+                        placeholder="Nombre, codigo, NIT o telefono"
+                      />
+                    </label>
+
+                    {clienteBusqueda.trim() && (
+                      <div className="cobro-clientes-resultados">
+                        {clientesVisibles.map((cliente) => (
+                          <button
+                            type="button"
+                            key={cliente.id}
+                            onClick={() => seleccionarCliente(cliente.id)}
+                          >
+                            <strong>{cliente.codigo}</strong>
+                            <span>{cliente.nombre}</span>
+                            <small>
+                              Favor Q{Number(cliente.saldo_favor || 0).toFixed(2)}
+                              {" | "}
+                              Pendiente Q{Number(cliente.saldo_pendiente || 0).toFixed(2)}
+                            </small>
+                          </button>
+                        ))}
+
+                        {clientesFiltrados.length === 0 && (
+                          <div className="cobro-busqueda-vacia">
+                            No se encontraron clientes con esa busqueda.
+                          </div>
+                        )}
+
+                        {clientesFiltrados.length > clientesVisibles.length && (
+                          <div className="cobro-busqueda-ayuda">
+                            Escriba mas datos para reducir los resultados.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
                 {clienteSeleccionado && (
-                  <button
-                    type="button"
-                    onClick={() => seleccionarCliente("")}
-                  >
-                    Quitar
-                  </button>
+                  <div className="cobro-cliente-resumen">
+                    <strong>{clienteSeleccionado.codigo}</strong>
+                    <span>{clienteSeleccionado.nombre}</span>
+                    <small>
+                      Favor Q{Number(clienteSeleccionado.saldo_favor || 0).toFixed(2)}
+                      {" | "}
+                      Pendiente Q{Number(clienteSeleccionado.saldo_pendiente || 0).toFixed(2)}
+                      {" | "}
+                      Limite Q{Number(clienteSeleccionado.limite_credito || 0).toFixed(2)}
+                    </small>
+                  </div>
                 )}
               </div>
-
-              {!clienteSeleccionado && (
-                <>
-                  <label className="cobro-field">
-                    <span>Buscar cliente interno</span>
-                    <input
-                      value={clienteBusqueda}
-                      onChange={(e) => {
-                        setClienteBusqueda(e.target.value);
-                        setClienteId("");
-                        setSaldoFavorUsado("");
-                      }}
-                      placeholder="Nombre, codigo, NIT o telefono"
-                    />
-                  </label>
-
-                  {clienteBusqueda.trim() && (
-                    <div className="cobro-clientes-resultados">
-                      {clientesVisibles.map((cliente) => (
-                        <button
-                          type="button"
-                          key={cliente.id}
-                          onClick={() => seleccionarCliente(cliente.id)}
-                        >
-                          <strong>{cliente.codigo}</strong>
-                          <span>{cliente.nombre}</span>
-                          <small>
-                            Favor Q{Number(cliente.saldo_favor || 0).toFixed(2)}
-                            {" | "}
-                            Pendiente Q{Number(cliente.saldo_pendiente || 0).toFixed(2)}
-                          </small>
-                        </button>
-                      ))}
-
-                      {clientesFiltrados.length === 0 && (
-                        <div className="cobro-busqueda-vacia">
-                          No se encontraron clientes con esa busqueda.
-                        </div>
-                      )}
-
-                      {clientesFiltrados.length > clientesVisibles.length && (
-                        <div className="cobro-busqueda-ayuda">
-                          Escriba mas datos para reducir los resultados.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-
-              {clienteSeleccionado && (
-                <div className="cobro-cliente-resumen">
-                  <strong>{clienteSeleccionado.codigo}</strong>
-                  <span>{clienteSeleccionado.nombre}</span>
-                  <small>
-                    Favor Q{Number(clienteSeleccionado.saldo_favor || 0).toFixed(2)}
-                    {" | "}
-                    Pendiente Q{Number(clienteSeleccionado.saldo_pendiente || 0).toFixed(2)}
-                    {" | "}
-                    Limite Q{Number(clienteSeleccionado.limite_credito || 0).toFixed(2)}
-                  </small>
-                </div>
-              )}
-            </div>
+            )}
 
             {tieneProductosPreparacion && (
               <div className="cobro-bloque cobro-comanda-box">
@@ -635,7 +656,9 @@ export default function ModalCobro({
             </div>
 
             <div className="cobro-metodos">
-              {["Factura", "Recibo", "Credito"].map((tipo) => (
+              {["Factura", "Recibo", clientesCreditoHabilitado ? "Credito" : null]
+                .filter(Boolean)
+                .map((tipo) => (
                 <button
                   key={tipo}
                   className={tipoComprobante === tipo ? "activo" : ""}
@@ -655,7 +678,8 @@ export default function ModalCobro({
               </div>
             ) : (
               <>
-                {clienteSeleccionado &&
+                {clientesCreditoHabilitado &&
+                  clienteSeleccionado &&
                   Number(clienteSeleccionado.saldo_favor || 0) > 0 && (
                     <label className="cobro-field cobro-saldo-favor">
                       <span>

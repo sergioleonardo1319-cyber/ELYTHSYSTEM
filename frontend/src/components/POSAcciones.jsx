@@ -39,6 +39,8 @@ export default function POSAcciones({
   onAgregarCredito,
   creditosAgregados = [],
   onCajaActualizada,
+  cajaActual: cajaActualProp,
+  clientesCreditoHabilitado = true,
 }) {
   const [abierto, setAbierto] = useState(false);
   const [modal, setModal] = useState("");
@@ -74,6 +76,11 @@ export default function POSAcciones({
     password_admin: "",
   });
   const [anulando, setAnulando] = useState(false);
+  const cajaAbiertaActual = cajaActual?.abierta
+    ? cajaActual
+    : cajaActualProp?.abierta
+    ? cajaActualProp
+    : null;
 
   usePOSModalLayer(Boolean(modal) || Boolean(ventaAnular) || Boolean(aviso));
 
@@ -405,6 +412,15 @@ export default function POSAcciones({
   };
 
   const cargarCreditos = async () => {
+    if (!clientesCreditoHabilitado) {
+      setAviso({
+        tipo: "info",
+        titulo: "Clientes deshabilitado",
+        mensaje: "Esta empresa no tiene habilitado clientes y credito.",
+      });
+      return;
+    }
+
     const res = await fetch(
       `${API}/clientes/creditos-pendientes?empresa_id=${user.empresa_id}`,
       {
@@ -431,8 +447,8 @@ export default function POSAcciones({
 
   const abrirGasto = async () => {
     setAbierto(false);
-    const caja = cajaActual?.abierta
-      ? cajaActual
+    const caja = cajaAbiertaActual?.abierta
+      ? cajaAbiertaActual
       : await cargarCajaActual({ abrirModal: false });
 
     if (!caja?.abierta) {
@@ -452,8 +468,8 @@ export default function POSAcciones({
 
     if (registrandoGasto) return;
 
-    const caja = cajaActual?.abierta
-      ? cajaActual
+    const caja = cajaAbiertaActual?.abierta
+      ? cajaAbiertaActual
       : await cargarCajaActual({ abrirModal: false });
 
     if (!caja?.abierta) {
@@ -679,25 +695,34 @@ export default function POSAcciones({
 
       {abierto && (
         <div className="pos-acciones-menu">
-          <button onClick={abrirApertura}>Aperturar caja</button>
-          <button onClick={() => { setAbierto(false); cargarCajaActual(); }}>
-            Caja actual
-          </button>
-          <button onClick={abrirAjusteCaja}>
-            Ajustar caja
-          </button>
+          {cajaAbiertaActual ? (
+            <>
+              <button onClick={() => { setAbierto(false); cargarCajaActual(); }}>
+                Caja actual
+              </button>
+              <button onClick={abrirAjusteCaja}>
+                Ajustar caja
+              </button>
+            </>
+          ) : (
+            <button onClick={abrirApertura}>Aperturar caja</button>
+          )}
           <button onClick={() => { setAbierto(false); cargarVentas(); }}>
             Detalle de ventas
           </button>
           <button onClick={() => { setAbierto(false); cargarResumen(); }}>
             Credito y efectivo
           </button>
-          <button onClick={() => { setAbierto(false); cargarCreditos(); }}>
-            Cobrar credito
-          </button>
-          <button onClick={abrirGasto}>
-            Registrar gasto
-          </button>
+          {clientesCreditoHabilitado && (
+            <button onClick={() => { setAbierto(false); cargarCreditos(); }}>
+              Cobrar credito
+            </button>
+          )}
+          {cajaAbiertaActual && (
+            <button onClick={abrirGasto}>
+              Registrar gasto
+            </button>
+          )}
           {user?.empresa_habilitar_diagnostico_impresora === true && (
             <button onClick={abrirDiagnosticoImpresora}>
               Diagnostico impresora

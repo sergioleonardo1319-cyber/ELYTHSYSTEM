@@ -452,6 +452,15 @@ export default function App() {
 
   }, [user]);
 
+  const clientesCreditoHabilitado =
+    user?.empresa_habilitar_clientes_credito !== false;
+
+  useEffect(() => {
+    if (vista === "clientes" && !clientesCreditoHabilitado) {
+      setVista("pos");
+    }
+  }, [vista, clientesCreditoHabilitado]);
+
   // =========================
   // LOGIN GUARD
   // =========================
@@ -1804,6 +1813,7 @@ export default function App() {
                   onAgregarCredito={agregarCreditoAlCarrito}
                   cajaActual={cajaActual}
                   onCajaActualizada={setCajaActual}
+                  clientesCreditoHabilitado={clientesCreditoHabilitado}
                   creditosAgregados={carrito
                     .filter((item) => item.tipo_linea === "credito_pendiente")
                     .map((item) => item.venta_credito_id)}
@@ -1867,7 +1877,7 @@ export default function App() {
         />
       )}
 
-      {vista === "clientes" && (
+      {vista === "clientes" && clientesCreditoHabilitado && (
         <Clientes user={user} />
       )}
 
@@ -1904,6 +1914,7 @@ export default function App() {
         visible={mostrarModalCobro}
         total={total}
         tieneProductosPreparacion={tieneProductosPreparacion}
+        clientesCreditoHabilitado={clientesCreditoHabilitado}
         onCancelar={() =>
           setMostrarModalCobro(false)
         }

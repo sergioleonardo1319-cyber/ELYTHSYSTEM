@@ -36,6 +36,7 @@ export default function Admin({ onImpersonar }) {
     imprimir_factura_auto: false,
     imprimir_comanda_auto: false,
     habilitar_diagnostico_impresora: false,
+    habilitar_clientes_credito: true,
   });
 
   const [usuario, setUsuario] = useState({
@@ -266,6 +267,7 @@ export default function Admin({ onImpersonar }) {
         imprimir_factura_auto: false,
         imprimir_comanda_auto: false,
         habilitar_diagnostico_impresora: false,
+        habilitar_clientes_credito: true,
       });
       await cargarEmpresas();
       mostrarToast("Empresa creada correctamente");
@@ -291,6 +293,10 @@ export default function Admin({ onImpersonar }) {
           campo === "habilitar_diagnostico_impresora"
             ? valor
             : empresa.habilitar_diagnostico_impresora === true,
+        habilitar_clientes_credito:
+          campo === "habilitar_clientes_credito"
+            ? valor
+            : empresa.habilitar_clientes_credito !== false,
       };
 
       const res = await fetch(
@@ -1026,6 +1032,23 @@ export default function Admin({ onImpersonar }) {
                   <small>Mostrar herramienta de soporte en POS</small>
                 </span>
               </label>
+
+              <label className="admin-switch">
+                <input
+                  type="checkbox"
+                  checked={empresaForm.habilitar_clientes_credito}
+                  onChange={(e) =>
+                    setEmpresaForm({
+                      ...empresaForm,
+                      habilitar_clientes_credito: e.target.checked,
+                    })
+                  }
+                />
+                <span>
+                  <strong>Clientes y credito</strong>
+                  <small>Mostrar clientes registrados, credito y saldo a favor</small>
+                </span>
+              </label>
             </div>
           </div>
 
@@ -1409,6 +1432,23 @@ export default function Admin({ onImpersonar }) {
                         />
                         <span>
                           <strong>Diagnostico impresora</strong>
+                        </span>
+                      </label>
+
+                      <label className="admin-switch admin-switch-inline">
+                        <input
+                          type="checkbox"
+                          checked={empresa.habilitar_clientes_credito !== false}
+                          onChange={(e) =>
+                            actualizarConfiguracionPOS(
+                              empresa,
+                              "habilitar_clientes_credito",
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <span>
+                          <strong>Clientes y credito</strong>
                         </span>
                       </label>
                     </div>
