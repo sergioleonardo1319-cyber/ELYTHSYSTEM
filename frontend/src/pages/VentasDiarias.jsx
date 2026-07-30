@@ -2,8 +2,16 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import "./VentasDiarias.css";
 import { API } from "../config";
 
+const obtenerFechaGuatemala = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Guatemala",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
 export default function VentasDiarias({ user }) {
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = obtenerFechaGuatemala();
   const [fecha, setFecha] = useState(hoy);
   const [ventas, setVentas] = useState([]);
   const [resumen, setResumen] = useState(null);

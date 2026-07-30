@@ -12,6 +12,14 @@ const APP_ENV = process.env.APP_ENV || process.env.NODE_ENV || "development";
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET = process.env.JWT_SECRET || "mi_clave_super_secreta";
 const PROJECT_ROOT = __dirname;
+const DB_TIMEZONE = process.env.DB_TIMEZONE || "America/Guatemala";
+const fechaNegocioFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: DB_TIMEZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+const obtenerFechaNegocio = () => fechaNegocioFormatter.format(new Date());
 const usarSSL = (prefix = "DB") =>
   String(process.env[`${prefix}_SSL`] || "").toLowerCase() === "true";
 const esSandbox = APP_ENV === "sandbox";
@@ -29,6 +37,7 @@ const obtenerConfigDb = (prefix = "DB", permitirFallbackDb = true) => {
     database: env("NAME", prefix === "SANDBOX_DB" ? "pos_sandbox" : "pos"),
     password: env("PASSWORD", "1234"),
     port: Number(env("PORT", "5432")),
+    options: env("OPTIONS", `-c timezone=${DB_TIMEZONE}`),
     ssl:
       usarSSL(prefix) || (usarFallback && usarSSL("DB"))
         ? { rejectUnauthorized: false }
@@ -7207,7 +7216,7 @@ app.get(
   async (req, res) => {
   try {
     const empresaId = obtenerEmpresaId(req);
-    const fecha = req.query.fecha || new Date().toISOString().slice(0, 10);
+    const fecha = req.query.fecha || obtenerFechaNegocio();
 
     const ventas = await db.query(
       `
