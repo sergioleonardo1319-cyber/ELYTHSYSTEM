@@ -1,7 +1,7 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-const { Pool } = require("pg");
+const { Pool, types: pgTypes } = require("pg");
 const { spawnSync } = require("child_process");
 const { loadEnv } = require("./config/env");
 
@@ -20,6 +20,13 @@ const fechaNegocioFormatter = new Intl.DateTimeFormat("en-CA", {
   day: "2-digit",
 });
 const obtenerFechaNegocio = () => fechaNegocioFormatter.format(new Date());
+
+// PostgreSQL guarda los TIMESTAMP del sistema como hora local de Guatemala.
+// Render opera en UTC, por lo que debemos agregar la zona antes de serializarlos.
+pgTypes.setTypeParser(1114, (valor) => {
+  if (!valor) return valor;
+  return new Date(`${String(valor).replace(" ", "T")}-06:00`);
+});
 const usarSSL = (prefix = "DB") =>
   String(process.env[`${prefix}_SSL`] || "").toLowerCase() === "true";
 const esSandbox = APP_ENV === "sandbox";
@@ -8232,6 +8239,11 @@ app.post(
     }
 
     const subtotal = total;
+    const subtotalCreditos = creditosVenta.reduce(
+      (sum, credito) => sum + Number(credito.monto || 0),
+      0
+    );
+    const subtotalProductos = Math.max(subtotal - subtotalCreditos, 0);
     const pagoFinal = pago || {};
     const clientesCredito = [
       ...new Set(
@@ -8263,10 +8275,10 @@ app.post(
     const descuentoValor = Number(pagoFinal.descuento_valor || 0);
     let descuentoMonto =
       descuentoTipo === "porcentaje"
-        ? subtotal * Math.min(Math.max(descuentoValor, 0), 100) / 100
-        : Math.min(Math.max(descuentoValor, 0), subtotal);
+        ? subtotalProductos * Math.min(Math.max(descuentoValor, 0), 100) / 100
+        : Math.min(Math.max(descuentoValor, 0), subtotalProductos);
 
-    total = Math.max(subtotal - descuentoMonto, 0);
+    total = Math.max(subtotalCreditos + subtotalProductos - descuentoMonto, 0);
 
     let clienteCuenta = null;
     const clienteId = pagoFinal.cliente_id || clientesCredito[0] || null;
@@ -8544,6 +8556,45 @@ app.post(
     }
 
     for (const credito of creditosVenta) {
+      const detalleCreditoResult = await client.query(
+        `
+        SELECT
+          dv.cantidad,
+          dv.precio,
+          COALESCE(dv.descripcion, p.nombre, 'Producto') AS nombre,
+          COALESCE(dv.observacion, '') AS observacion,
+          COALESCE(dv.complementos, '[]'::jsonb) AS complementos
+        FROM detalle_ventas dv
+        LEFT JOIN productos p
+          ON p.id = dv.producto_id
+         AND p.empresa_id = $2
+        WHERE dv.venta_id = $1
+        ORDER BY dv.id ASC
+        `,
+        [credito.venta_credito_id, empresaIdFinal]
+      );
+      const detalleCredito = detalleCreditoResult.rows
+        .map((item) => {
+          const complementos = Array.isArray(item.complementos)
+            ? item.complementos
+                .flatMap((grupo) =>
+                  Array.isArray(grupo.opciones)
+                    ? grupo.opciones.map((opcion) => opcion.nombre).filter(Boolean)
+                    : []
+                )
+                .join(", ")
+            : "";
+          const notas = [complementos, String(item.observacion || "").trim()]
+            .filter(Boolean)
+            .join("; ");
+
+          return (
+            `${Number(item.cantidad || 0)}x ${String(item.nombre || "Producto").trim()} ` +
+            `(Q${Number(item.precio || 0).toFixed(2)} c/u)` +
+            (notas ? ` [${notas}]` : "")
+          );
+        })
+        .join("; ");
       const clienteCreditoResult = await client.query(
         `
         SELECT *
@@ -8649,7 +8700,8 @@ app.post(
         [
           venta.id,
           credito.monto,
-          `Cobro credito venta #${credito.venta_credito_id} - ${credito.cliente_nombre}`,
+          `Cobro credito venta #${credito.venta_credito_id} - ${credito.cliente_nombre}` +
+            (detalleCredito ? ` | Detalle: ${detalleCredito}` : ""),
         ]
       );
     }

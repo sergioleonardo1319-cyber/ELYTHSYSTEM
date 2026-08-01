@@ -152,6 +152,9 @@ export default function Admin({ onImpersonar }) {
   const accesosRolSeleccionado =
     accesosPorRol[usuario.rol] || [];
 
+  const nombreRol = (rol) =>
+    rol === "cocina" ? "Comandas" : rol;
+
   const mostrarToast = (mensaje) => {
     setToast(mensaje);
 
@@ -1148,14 +1151,14 @@ export default function Admin({ onImpersonar }) {
                 <option value="cajero">Cajero</option>
                 <option value="compras">Compras</option>
                 <option value="inventario">Inventario</option>
-                <option value="cocina">Cocina</option>
+                <option value="cocina">Comandas</option>
               </select>
             </label>
 
             <div className="admin-role-access">
               <div>
                 <span>Accesos del rol</span>
-                <strong>{usuario.rol}</strong>
+                <strong>{nombreRol(usuario.rol)}</strong>
               </div>
 
               <ul>
@@ -1653,7 +1656,7 @@ export default function Admin({ onImpersonar }) {
                             </small>
                           </div>
 
-                          <span>{usuarioItem.rol}</span>
+                          <span>{nombreRol(usuarioItem.rol)}</span>
                         </div>
                       ))
                     )}
@@ -1696,7 +1699,7 @@ export default function Admin({ onImpersonar }) {
                         </small>
                       </div>
 
-                      <span>{usuarioItem.rol}</span>
+                      <span>{nombreRol(usuarioItem.rol)}</span>
                     </div>
                   ))}
                 </div>

@@ -32,6 +32,16 @@ const totalDenominaciones = (denominaciones) =>
     0
   );
 
+const formatearFechaHoraGuatemala = (fecha) =>
+  new Date(fecha).toLocaleString("es-GT", {
+    timeZone: "America/Guatemala",
+  });
+
+const formatearHoraGuatemala = (fecha) =>
+  new Date(fecha).toLocaleTimeString("es-GT", {
+    timeZone: "America/Guatemala",
+  });
+
 export default function POSAcciones({
   user,
   imprimirTicket,
@@ -1002,7 +1012,7 @@ export default function POSAcciones({
                         <div>
                           <strong>Venta #{venta.id}</strong>
                           <span>
-                            {new Date(venta.fecha).toLocaleTimeString()} - {venta.tipo_comprobante}
+                            {formatearHoraGuatemala(venta.fecha)} - {venta.tipo_comprobante}
                           </span>
                           <small>
                             {venta.cliente_nombre || "Consumidor Final"} - {venta.usuario_nombre || "-"}
@@ -1126,7 +1136,7 @@ export default function POSAcciones({
                       <div>
                         <strong>{credito.cliente_nombre || "Cliente"}</strong>
                         <span>
-                          Venta #{credito.id} - {new Date(credito.fecha).toLocaleString()}
+                          Venta #{credito.id} - {formatearFechaHoraGuatemala(credito.fecha)}
                         </span>
                         <small>
                           {credito.cliente_codigo || "Sin codigo"} - {Array.isArray(credito.detalle) ? credito.detalle.length : 0} lineas

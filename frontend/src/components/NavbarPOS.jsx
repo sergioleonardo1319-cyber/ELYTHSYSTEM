@@ -253,7 +253,9 @@ export default function NavbarPOS({
           >
             <CircleUserRound className="header-card-icon" aria-hidden="true" />
             <span className="header-card-text">
-              <span className="header-card-label">{user?.rol || "Usuario"}</span>
+              <span className="header-card-label">
+                {user?.rol === "cocina" ? "Comandas" : user?.rol || "Usuario"}
+              </span>
               <span className="header-card-value">{user?.nombre || "Usuario"}</span>
             </span>
             <ChevronDown className="header-card-chevron" aria-hidden="true" />

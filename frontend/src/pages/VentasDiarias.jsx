@@ -10,6 +10,16 @@ const obtenerFechaGuatemala = () =>
     day: "2-digit",
   }).format(new Date());
 
+const formatearFechaGuatemala = (fecha) =>
+  new Date(fecha).toLocaleString("es-GT", {
+    timeZone: "America/Guatemala",
+  });
+
+const formatearHoraGuatemala = (fecha) =>
+  new Date(fecha).toLocaleTimeString("es-GT", {
+    timeZone: "America/Guatemala",
+  });
+
 export default function VentasDiarias({ user }) {
   const hoy = obtenerFechaGuatemala();
   const [fecha, setFecha] = useState(hoy);
@@ -123,7 +133,7 @@ export default function VentasDiarias({ user }) {
         : 0;
 
       return {
-        fecha: new Date(venta.fecha).toLocaleString(),
+        fecha: formatearFechaGuatemala(venta.fecha),
         documento: `${venta.tipo_comprobante} #${venta.id}`,
         nit: venta.cliente_nit || "CF",
         cliente: venta.cliente_nombre || "CONSUMIDOR FINAL",
@@ -152,7 +162,7 @@ export default function VentasDiarias({ user }) {
         : 0;
 
       return (venta.detalle || []).map((item) => ({
-        fecha: new Date(venta.fecha).toLocaleString(),
+        fecha: formatearFechaGuatemala(venta.fecha),
         documento: `${venta.tipo_comprobante} #${venta.id}`,
         nit: venta.cliente_nit || "CF",
         cliente: venta.cliente_nombre || "CONSUMIDOR FINAL",
@@ -336,7 +346,7 @@ export default function VentasDiarias({ user }) {
                   return (
                     <Fragment key={venta.id}>
                       <tr className={venta.estado === "anulada" ? "venta-anulada" : ""}>
-                        <td>{new Date(venta.fecha).toLocaleTimeString()}</td>
+                        <td>{formatearHoraGuatemala(venta.fecha)}</td>
                         <td>
                           {venta.tipo_comprobante} #{venta.id}
                           {venta.estado === "anulada" && (

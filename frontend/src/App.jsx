@@ -32,6 +32,11 @@ import {
   clearSelectedEnvironment,
   getSelectedEnvironment,
 } from "./config";
+
+const formatearFechaHoraGuatemala = (fecha = new Date()) =>
+  new Date(fecha).toLocaleString("es-GT", {
+    timeZone: "America/Guatemala",
+  });
 import {
   aplicarClaseDispositivoPOS,
   detectarDispositivoPOS,
@@ -694,8 +699,8 @@ export default function App() {
     const nitEmpresa = user?.empresa_nit || "Pendiente";
     const direccionEmpresa = user?.empresa_direccion || "Pendiente";
     const fecha = venta?.fecha
-      ? new Date(venta.fecha).toLocaleString()
-      : new Date().toLocaleString();
+      ? formatearFechaHoraGuatemala(venta.fecha)
+      : formatearFechaHoraGuatemala();
     const subtotalDocumento = carritoVenta.reduce(
       (sum, item) => sum + Number(item.precio || 0) * Number(item.cantidad || 0),
       0
@@ -761,8 +766,8 @@ export default function App() {
   const crearTextoComandaTermica = (venta) => {
     const detalle = venta.detalle || [];
     const fecha = venta.fecha
-      ? new Date(venta.fecha).toLocaleString()
-      : new Date().toLocaleString();
+      ? formatearFechaHoraGuatemala(venta.fecha)
+      : formatearFechaHoraGuatemala();
     const lineas = [
       centrarTicket("COMANDA"),
       filaTicket("Venta", venta.id || ""),
@@ -854,8 +859,8 @@ export default function App() {
         .replaceAll("'", "&#039;");
 
     const fecha = venta?.fecha
-      ? new Date(venta.fecha).toLocaleString()
-      : new Date().toLocaleString();
+      ? formatearFechaHoraGuatemala(venta.fecha)
+      : formatearFechaHoraGuatemala();
 
     const tipoComprobante = datosPago.tipo_comprobante || "Factura";
     const esFactura = tipoComprobante === "Factura";
@@ -1239,8 +1244,8 @@ export default function App() {
 
     const detalle = venta.detalle || [];
     const fecha = venta.fecha
-      ? new Date(venta.fecha).toLocaleString()
-      : new Date().toLocaleString();
+      ? formatearFechaHoraGuatemala(venta.fecha)
+      : formatearFechaHoraGuatemala();
 
     const escapeHtml = (valor) =>
       String(valor ?? "")
@@ -1369,8 +1374,8 @@ export default function App() {
         .replaceAll("'", "&#039;");
 
     const fecha = venta?.fecha
-      ? new Date(venta.fecha).toLocaleString()
-      : new Date().toLocaleString();
+      ? formatearFechaHoraGuatemala(venta.fecha)
+      : formatearFechaHoraGuatemala();
     const tipoComprobante = datosPago.tipo_comprobante || "Factura";
     const esFactura = tipoComprobante === "Factura";
     const nombreEmpresa = user?.empresa_nombre || user?.empresa || "Mi Empresa";
@@ -1913,6 +1918,13 @@ export default function App() {
       <ModalCobro
         visible={mostrarModalCobro}
         total={total}
+        totalCreditoPendiente={carrito
+          .filter((item) => item.tipo_linea === "credito_pendiente")
+          .reduce(
+            (sum, item) =>
+              sum + Number(item.precio || 0) * Number(item.cantidad || 0),
+            0
+          )}
         tieneProductosPreparacion={tieneProductosPreparacion}
         clientesCreditoHabilitado={clientesCreditoHabilitado}
         onCancelar={() =>

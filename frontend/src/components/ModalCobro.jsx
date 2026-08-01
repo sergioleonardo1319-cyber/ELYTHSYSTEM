@@ -5,6 +5,7 @@ import { API } from "../config";
 export default function ModalCobro({
   visible,
   total,
+  totalCreditoPendiente = 0,
   tieneProductosPreparacion = false,
   clientesCreditoHabilitado = true,
   onCancelar,
@@ -86,15 +87,19 @@ export default function ModalCobro({
 
   const descuentoMonto = useMemo(() => {
     const valor = Number(descuentoValor || 0);
+    const baseDescuento = Math.max(
+      Number(total || 0) - Number(totalCreditoPendiente || 0),
+      0
+    );
 
     if (valor <= 0) return 0;
 
     if (descuentoTipo === "porcentaje") {
-      return total * Math.min(valor, 100) / 100;
+      return baseDescuento * Math.min(valor, 100) / 100;
     }
 
-    return Math.min(valor, total);
-  }, [descuentoTipo, descuentoValor, total]);
+    return Math.min(valor, baseDescuento);
+  }, [descuentoTipo, descuentoValor, total, totalCreditoPendiente]);
 
   const totalFinal = useMemo(
     () => Math.max(total - descuentoMonto, 0),
@@ -645,6 +650,23 @@ export default function ModalCobro({
                 <span>Subtotal</span>
                 <b>Q{Number(total).toFixed(2)}</b>
               </div>
+              {Number(totalCreditoPendiente || 0) > 0 && (
+                <>
+                  <div>
+                    <span>Credito pendiente</span>
+                    <b>Q{Number(totalCreditoPendiente).toFixed(2)}</b>
+                  </div>
+                  <div>
+                    <span>Productos nuevos</span>
+                    <b>
+                      Q{Math.max(
+                        Number(total || 0) - Number(totalCreditoPendiente || 0),
+                        0
+                      ).toFixed(2)}
+                    </b>
+                  </div>
+                </>
+              )}
               <div>
                 <span>Descuento</span>
                 <b>Q{descuentoMonto.toFixed(2)}</b>
