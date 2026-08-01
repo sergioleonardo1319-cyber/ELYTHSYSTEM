@@ -496,7 +496,13 @@ export default function Cocina({ user }) {
   };
 
   const Columna = ({ titulo, estado, color, fondo }) => {
-    const items = comandas.filter((comanda) => comanda.estado === estado);
+    const items = comandas
+      .filter((comanda) => comanda.estado === estado)
+      .sort((a, b) => {
+        const diferenciaFecha =
+          new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
+        return diferenciaFecha || Number(a.id || 0) - Number(b.id || 0);
+      });
 
     return (
       <section

@@ -7531,6 +7531,9 @@ app.get(
       )
     `;
     let filtroEstado = "AND c.estado <> 'ENTREGADO'";
+    const ordenComandas = historial
+      ? "c.fecha DESC, c.id DESC"
+      : "c.fecha ASC, c.id ASC";
 
     if (departamento) {
       params.push(departamento.toUpperCase());
@@ -7582,7 +7585,7 @@ app.get(
       ${filtroFecha}
       ${filtroEstado}
       GROUP BY c.id
-      ORDER BY c.fecha DESC, c.id DESC
+      ORDER BY ${ordenComandas}
       `,
       params
     );
