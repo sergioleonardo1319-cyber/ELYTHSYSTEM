@@ -1,4 +1,14 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
+import {
+  Banknote,
+  CheckCircle2,
+  CreditCard,
+  FileClock,
+  PencilLine,
+  ReceiptText,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import "./VentasDiarias.css";
 import { API } from "../config";
 
@@ -28,12 +38,36 @@ export default function VentasDiarias({ user }) {
   const [ventaAbierta, setVentaAbierta] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const [mensaje, setMensaje] = useState("");
   const [ventaAnular, setVentaAnular] = useState(null);
   const [anulacion, setAnulacion] = useState({
     motivo: "",
     password_admin: "",
   });
   const [anulando, setAnulando] = useState(false);
+  const [ventaCorregir, setVentaCorregir] = useState(null);
+  const [corrigiendo, setCorrigiendo] = useState(false);
+  const [ventaReemplazar, setVentaReemplazar] = useState(null);
+  const [reemplazando, setReemplazando] = useState(false);
+  const [correccion, setCorreccion] = useState({
+    efectivo: "0.00",
+    tarjeta: "0.00",
+    transferencia: "0.00",
+    tarjeta_autorizacion: "",
+    transferencia_codigo: "",
+    motivo: "",
+    password_admin: "",
+  });
+  const [reemplazo, setReemplazo] = useState({
+    total_nuevo: "0.00",
+    efectivo: "0.00",
+    tarjeta: "0.00",
+    transferencia: "0.00",
+    tarjeta_autorizacion: "",
+    transferencia_codigo: "",
+    motivo: "",
+    password_admin: "",
+  });
 
   const cargarVentas = async () => {
     setCargando(true);
@@ -220,9 +254,122 @@ export default function VentasDiarias({ user }) {
 
       setVentaAnular(null);
       setAnulacion({ motivo: "", password_admin: "" });
+      setMensaje("Venta anulada correctamente. El registro permanece disponible para auditoría.");
       await cargarVentas();
     } finally {
       setAnulando(false);
+    }
+  };
+
+  const abrirCorreccionPago = (venta) => {
+    const efectivo = Math.max(
+      Number(venta.efectivo_recibido || 0) - Number(venta.cambio || 0),
+      0
+    );
+
+    setError("");
+    setVentaCorregir(venta);
+    setCorreccion({
+      efectivo: efectivo.toFixed(2),
+      tarjeta: Number(venta.tarjeta_monto || 0).toFixed(2),
+      transferencia: Number(venta.transferencia_monto || 0).toFixed(2),
+      tarjeta_autorizacion: venta.tarjeta_autorizacion || "",
+      transferencia_codigo: venta.transferencia_codigo || "",
+      motivo: "",
+      password_admin: "",
+    });
+  };
+
+  const guardarCorreccionPago = async (e) => {
+    e.preventDefault();
+    if (!ventaCorregir) return;
+
+    if (!correccion.motivo.trim()) {
+      setError("Ingrese el motivo de la correccion.");
+      return;
+    }
+
+    setCorrigiendo(true);
+    setError("");
+
+    try {
+      const res = await fetch(
+        `${API}/ventas/${ventaCorregir.id}/corregir-pago`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            empresa_id: user.empresa_id,
+            ...correccion,
+          }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error || "No se pudo corregir la forma de pago.");
+        return;
+      }
+
+      setVentaCorregir(null);
+      setMensaje("Forma de pago corregida y registrada en auditoría.");
+      await cargarVentas();
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo conectar con el servidor.");
+    } finally {
+      setCorrigiendo(false);
+    }
+  };
+
+  const abrirReemplazo = (venta) => {
+    setError("");
+    setVentaReemplazar(venta);
+    setReemplazo({
+      total_nuevo: Number(venta.total || 0).toFixed(2),
+      efectivo: Math.max(Number(venta.efectivo_recibido || 0) - Number(venta.cambio || 0), 0).toFixed(2),
+      tarjeta: Number(venta.tarjeta_monto || 0).toFixed(2),
+      transferencia: Number(venta.transferencia_monto || 0).toFixed(2),
+      tarjeta_autorizacion: venta.tarjeta_autorizacion || "",
+      transferencia_codigo: venta.transferencia_codigo || "",
+      motivo: "",
+      password_admin: "",
+    });
+  };
+
+  const guardarReemplazo = async (e) => {
+    e.preventDefault();
+    if (!ventaReemplazar) return;
+    setReemplazando(true);
+    setError("");
+
+    try {
+      const res = await fetch(`${API}/ventas/${ventaReemplazar.id}/anular-reemplazar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ empresa_id: user.empresa_id, ...reemplazo }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error || "No se pudo reemplazar la venta.");
+        return;
+      }
+
+      setVentaReemplazar(null);
+      setMensaje(data.mensaje || "Venta anulada y reemplazada correctamente.");
+      await cargarVentas();
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo conectar con el servidor.");
+    } finally {
+      setReemplazando(false);
     }
   };
 
@@ -255,6 +402,13 @@ export default function VentasDiarias({ user }) {
       </header>
 
       {error && <div className="ventas-admin-error">{error}</div>}
+      {mensaje && (
+        <div className="ventas-admin-exito">
+          <CheckCircle2 size={19} />
+          <span>{mensaje}</span>
+          <button type="button" onClick={() => setMensaje("")}>Cerrar</button>
+        </div>
+      )}
 
       <section className="ventas-admin-resumen">
         <article>
@@ -351,7 +505,14 @@ export default function VentasDiarias({ user }) {
                           {venta.tipo_comprobante} #{venta.id}
                           {venta.estado === "anulada" && (
                             <span className="venta-estado-anulada">
-                              ANULADA
+                              {venta.venta_reemplazo_id
+                                ? `REEMPLAZADA POR #${venta.venta_reemplazo_id}`
+                                : "ANULADA"}
+                            </span>
+                          )}
+                          {venta.venta_origen_id && (
+                            <span className="venta-estado-reemplazo">
+                              CORRIGE #{venta.venta_origen_id}
                             </span>
                           )}
                         </td>
@@ -378,19 +539,38 @@ export default function VentasDiarias({ user }) {
                               {ventaAbierta === venta.id ? "Ocultar" : "Detalle"}
                             </button>
                             {venta.estado !== "anulada" && (
-                              <button
-                                type="button"
-                                className="ventas-admin-anular"
-                                onClick={() => {
-                                  setVentaAnular(venta);
-                                  setAnulacion({
-                                    motivo: "",
-                                    password_admin: "",
-                                  });
-                                }}
-                              >
-                                Anular
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  className="ventas-admin-corregir"
+                                  onClick={() => abrirCorreccionPago(venta)}
+                                >
+                                  <PencilLine size={15} />
+                                  Corregir pago
+                                </button>
+                                <button
+                                  type="button"
+                                  className="ventas-admin-reemplazar"
+                                  onClick={() => abrirReemplazo(venta)}
+                                >
+                                  <ReceiptText size={15} />
+                                  Anular y reemplazar
+                                </button>
+                                <button
+                                  type="button"
+                                  className="ventas-admin-anular"
+                                  onClick={() => {
+                                    setVentaAnular(venta);
+                                    setAnulacion({
+                                      motivo: "",
+                                      password_admin: "",
+                                    });
+                                  }}
+                                >
+                                  <Trash2 size={15} />
+                                  Anular definitivamente
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>
@@ -409,6 +589,45 @@ export default function VentasDiarias({ user }) {
                                 </article>
                               ))}
                             </div>
+                            <div className="ventas-admin-pago-detalle">
+                              <div>
+                                <Banknote size={18} />
+                                <span>Efectivo neto</span>
+                                <strong>Q{(
+                                  Number(venta.efectivo_recibido || 0) -
+                                  Number(venta.cambio || 0)
+                                ).toFixed(2)}</strong>
+                              </div>
+                              <div>
+                                <CreditCard size={18} />
+                                <span>Tarjeta</span>
+                                <strong>Q{Number(venta.tarjeta_monto || 0).toFixed(2)}</strong>
+                                <small>{venta.tarjeta_autorizacion || "Sin codigo"}</small>
+                              </div>
+                              <div>
+                                <ReceiptText size={18} />
+                                <span>Transferencia</span>
+                                <strong>Q{Number(venta.transferencia_monto || 0).toFixed(2)}</strong>
+                                <small>{venta.transferencia_codigo || "Sin codigo"}</small>
+                              </div>
+                            </div>
+                            {(venta.correcciones || []).length > 0 && (
+                              <div className="ventas-admin-auditoria">
+                                <h3><FileClock size={18} /> Historial de correcciones</h3>
+                                {(venta.correcciones || []).map((item) => (
+                                  <article key={item.id}>
+                                    <CheckCircle2 size={17} />
+                                    <div>
+                                      <strong>{item.tipo === "forma_pago" ? "Forma de pago corregida" : "Venta anulada"}</strong>
+                                      <span>{item.motivo}</span>
+                                      <small>
+                                        {formatearFechaGuatemala(item.fecha)} · {item.autorizador || item.usuario || "Administrador"}
+                                      </small>
+                                    </div>
+                                  </article>
+                                ))}
+                              </div>
+                            )}
                           </td>
                         </tr>
                       )}
@@ -424,10 +643,15 @@ export default function VentasDiarias({ user }) {
       {ventaAnular && (
         <div className="ventas-admin-modal-overlay">
           <form className="ventas-admin-modal" onSubmit={anularVenta}>
-            <h2>Anular venta #{ventaAnular.id}</h2>
+            <header className="ventas-admin-modal-head">
+              <div className="ventas-admin-modal-icon peligro"><Trash2 size={23} /></div>
+              <div>
+                <span>OPERACION RESTRINGIDA</span>
+                <h2>Anular definitivamente · {ventaAnular.tipo_comprobante} #{ventaAnular.id}</h2>
+              </div>
+            </header>
             <p>
-              La venta quedara marcada como anulada y no sumara en los reportes
-              activos. Ingresa motivo y password de administrador.
+              La venta quedará marcada como anulada y no sumará en los reportes activos. Su historial no se eliminará.
             </p>
 
             <label>
@@ -470,6 +694,119 @@ export default function VentasDiarias({ user }) {
               <button type="submit" className="peligro" disabled={anulando}>
                 {anulando ? "Anulando..." : "Confirmar anulacion"}
               </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {ventaCorregir && (
+        <div className="ventas-admin-modal-overlay">
+          <form
+            className="ventas-admin-modal ventas-admin-modal-correccion"
+            onSubmit={guardarCorreccionPago}
+          >
+            <header className="ventas-admin-modal-head">
+              <div className="ventas-admin-modal-icon"><PencilLine size={23} /></div>
+              <div>
+                <span>CORRECCION ADMINISTRATIVA</span>
+                <h2>Forma de pago · {ventaCorregir.tipo_comprobante} #{ventaCorregir.id}</h2>
+                <p>El total de la venta no cambia. La operación quedará registrada en auditoría.</p>
+              </div>
+            </header>
+
+            <section className="ventas-admin-correccion-total">
+              <span>Total a distribuir</span>
+              <strong>Q{(
+                Number(ventaCorregir.total || 0) -
+                Number(ventaCorregir.saldo_favor_usado || 0)
+              ).toFixed(2)}</strong>
+            </section>
+
+            <div className="ventas-admin-correccion-grid">
+              <label>
+                <span>Efectivo</span>
+                <div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={correccion.efectivo} onChange={(e) => setCorreccion((prev) => ({ ...prev, efectivo: e.target.value }))} /></div>
+              </label>
+              <label>
+                <span>Tarjeta</span>
+                <div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={correccion.tarjeta} onChange={(e) => setCorreccion((prev) => ({ ...prev, tarjeta: e.target.value }))} /></div>
+              </label>
+              <label>
+                <span>Transferencia</span>
+                <div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={correccion.transferencia} onChange={(e) => setCorreccion((prev) => ({ ...prev, transferencia: e.target.value }))} /></div>
+              </label>
+            </div>
+
+            <div className="ventas-admin-correccion-grid dos-columnas">
+              <label>
+                <span>Autorizacion de tarjeta</span>
+                <input value={correccion.tarjeta_autorizacion} onChange={(e) => setCorreccion((prev) => ({ ...prev, tarjeta_autorizacion: e.target.value }))} placeholder="Codigo del voucher" />
+              </label>
+              <label>
+                <span>Codigo de transferencia</span>
+                <input value={correccion.transferencia_codigo} onChange={(e) => setCorreccion((prev) => ({ ...prev, transferencia_codigo: e.target.value }))} placeholder="Referencia bancaria" />
+              </label>
+            </div>
+
+            <label>
+              <span>Motivo obligatorio</span>
+              <textarea value={correccion.motivo} onChange={(e) => setCorreccion((prev) => ({ ...prev, motivo: e.target.value }))} placeholder="Ejemplo: pago con tarjeta registrado como transferencia" />
+            </label>
+            <label>
+              <span>Password de administrador</span>
+              <input type="password" value={correccion.password_admin} onChange={(e) => setCorreccion((prev) => ({ ...prev, password_admin: e.target.value }))} placeholder="Confirma la autorización" />
+            </label>
+
+            <div className="ventas-admin-seguridad">
+              <ShieldCheck size={19} />
+              <span>Se conservarán el dato anterior, el nuevo valor y el administrador que autorizó.</span>
+            </div>
+
+            <div className="ventas-admin-modal-actions">
+              <button type="button" onClick={() => setVentaCorregir(null)} disabled={corrigiendo}>Cancelar</button>
+              <button type="submit" className="primario" disabled={corrigiendo}>{corrigiendo ? "Guardando..." : "Guardar corrección"}</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {ventaReemplazar && (
+        <div className="ventas-admin-modal-overlay">
+          <form className="ventas-admin-modal ventas-admin-modal-correccion" onSubmit={guardarReemplazo}>
+            <header className="ventas-admin-modal-head">
+              <div className="ventas-admin-modal-icon reemplazo"><ReceiptText size={23} /></div>
+              <div>
+                <span>DOCUMENTO CORRECTIVO</span>
+                <h2>Anular y reemplazar · {ventaReemplazar.tipo_comprobante} #{ventaReemplazar.id}</h2>
+                <p>El documento original conservará su historial y se generará uno nuevo vinculado.</p>
+              </div>
+            </header>
+
+            <label className="ventas-admin-total-nuevo">
+              <span>Total correcto del nuevo documento</span>
+              <div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0.01" step="0.01" value={reemplazo.total_nuevo} onChange={(e) => setReemplazo((prev) => ({ ...prev, total_nuevo: e.target.value }))} /></div>
+              <small>Subtotal original disponible: Q{Number(ventaReemplazar.subtotal || 0).toFixed(2)}</small>
+            </label>
+
+            <div className="ventas-admin-correccion-grid">
+              <label><span>Efectivo</span><div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={reemplazo.efectivo} onChange={(e) => setReemplazo((prev) => ({ ...prev, efectivo: e.target.value }))} /></div></label>
+              <label><span>Tarjeta</span><div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={reemplazo.tarjeta} onChange={(e) => setReemplazo((prev) => ({ ...prev, tarjeta: e.target.value }))} /></div></label>
+              <label><span>Transferencia</span><div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={reemplazo.transferencia} onChange={(e) => setReemplazo((prev) => ({ ...prev, transferencia: e.target.value }))} /></div></label>
+            </div>
+            <div className="ventas-admin-correccion-grid dos-columnas">
+              <label><span>Autorizacion de tarjeta</span><input value={reemplazo.tarjeta_autorizacion} onChange={(e) => setReemplazo((prev) => ({ ...prev, tarjeta_autorizacion: e.target.value }))} placeholder="Codigo del voucher" /></label>
+              <label><span>Codigo de transferencia</span><input value={reemplazo.transferencia_codigo} onChange={(e) => setReemplazo((prev) => ({ ...prev, transferencia_codigo: e.target.value }))} placeholder="Referencia bancaria" /></label>
+            </div>
+            <label><span>Motivo obligatorio</span><textarea value={reemplazo.motivo} onChange={(e) => setReemplazo((prev) => ({ ...prev, motivo: e.target.value }))} placeholder="Ejemplo: importe digitado incorrectamente" /></label>
+            <label><span>Password de administrador</span><input type="password" value={reemplazo.password_admin} onChange={(e) => setReemplazo((prev) => ({ ...prev, password_admin: e.target.value }))} placeholder="Confirma la autorización" /></label>
+
+            <div className="ventas-admin-seguridad advertencia">
+              <ShieldCheck size={19} />
+              <span>Los productos no se descontarán dos veces. El documento anterior quedará anulado y enlazado al reemplazo.</span>
+            </div>
+            <div className="ventas-admin-modal-actions">
+              <button type="button" onClick={() => setVentaReemplazar(null)} disabled={reemplazando}>Cancelar</button>
+              <button type="submit" className="reemplazar" disabled={reemplazando}>{reemplazando ? "Generando..." : "Generar reemplazo"}</button>
             </div>
           </form>
         </div>

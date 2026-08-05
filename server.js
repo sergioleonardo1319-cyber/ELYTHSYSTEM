@@ -393,6 +393,42 @@ const inicializarCaja = async () => {
     `);
 
     await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS venta_origen_id INTEGER REFERENCES ventas(id) ON DELETE SET NULL
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS venta_reemplazo_id INTEGER REFERENCES ventas(id) ON DELETE SET NULL
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS ventas_correcciones (
+        id SERIAL PRIMARY KEY,
+        venta_id INTEGER NOT NULL REFERENCES ventas(id) ON DELETE CASCADE,
+        empresa_id INTEGER NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+        tipo VARCHAR(40) NOT NULL,
+        valores_anteriores JSONB NOT NULL DEFAULT '{}'::jsonb,
+        valores_nuevos JSONB NOT NULL DEFAULT '{}'::jsonb,
+        motivo TEXT NOT NULL,
+        usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+        autorizador_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+        venta_reemplazo_id INTEGER REFERENCES ventas(id) ON DELETE SET NULL,
+        fecha TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas_correcciones
+      ADD COLUMN IF NOT EXISTS venta_reemplazo_id INTEGER REFERENCES ventas(id) ON DELETE SET NULL
+    `);
+
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS ventas_correcciones_venta_idx
+      ON ventas_correcciones (empresa_id, venta_id, fecha DESC)
+    `);
+
+    await db.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS ventas_empresa_clave_operacion_idx
       ON ventas (empresa_id, clave_operacion)
       WHERE clave_operacion IS NOT NULL
@@ -7231,6 +7267,28 @@ app.get(
         v.*,
         u.nombre AS usuario_nombre,
         COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', vc.id,
+                'tipo', vc.tipo,
+                'motivo', vc.motivo,
+                'valores_anteriores', vc.valores_anteriores,
+                'valores_nuevos', vc.valores_nuevos,
+                'fecha', vc.fecha,
+                'usuario', cu.nombre,
+                'autorizador', ca.nombre
+              ) ORDER BY vc.fecha DESC
+            )
+            FROM ventas_correcciones vc
+            LEFT JOIN usuarios cu ON cu.id = vc.usuario_id
+            LEFT JOIN usuarios ca ON ca.id = vc.autorizador_id
+            WHERE vc.venta_id = v.id
+            AND vc.empresa_id = v.empresa_id
+          ),
+          '[]'
+        ) AS correcciones,
+        COALESCE(
           json_agg(
             json_build_object(
               'producto_id', dv.producto_id,
@@ -7685,6 +7743,464 @@ app.put(
 ========================= */
 
 app.patch(
+  "/ventas/:id/corregir-pago",
+  verificarToken,
+  permitirRoles("admin"),
+  async (req, res) => {
+    const client = await db.connect();
+
+    try {
+      const empresaId = obtenerEmpresaId(req);
+      const ventaId = Number(req.params.id);
+      const motivo = String(req.body.motivo || "").trim();
+      const passwordAdmin = String(req.body.password_admin || "").trim();
+      const efectivo = redondearMoneda(req.body.efectivo);
+      const tarjeta = redondearMoneda(req.body.tarjeta);
+      const transferencia = redondearMoneda(req.body.transferencia);
+      const tarjetaAutorizacion = String(
+        req.body.tarjeta_autorizacion || ""
+      ).trim();
+      const transferenciaCodigo = String(
+        req.body.transferencia_codigo || ""
+      ).trim();
+
+      if (!ventaId) {
+        return res.status(400).json({ error: "Venta invalida" });
+      }
+
+      if (!motivo) {
+        return res.status(400).json({
+          error: "Ingrese el motivo de la correccion",
+        });
+      }
+
+      if ([efectivo, tarjeta, transferencia].some((monto) => monto < 0)) {
+        return res.status(400).json({
+          error: "Los montos de pago no pueden ser negativos",
+        });
+      }
+
+      if (tarjeta > 0 && !tarjetaAutorizacion) {
+        return res.status(400).json({
+          error: "Ingrese el codigo de autorizacion de tarjeta",
+        });
+      }
+
+      if (transferencia > 0 && !transferenciaCodigo) {
+        return res.status(400).json({
+          error: "Ingrese el codigo de transferencia",
+        });
+      }
+
+      const autorizador = await validarPasswordAdminEmpresa(
+        empresaId,
+        passwordAdmin
+      );
+
+      await client.query("BEGIN");
+
+      const ventaResult = await client.query(
+        `
+        SELECT *
+        FROM ventas
+        WHERE id = $1
+        AND empresa_id = $2
+        FOR UPDATE
+        `,
+        [ventaId, empresaId]
+      );
+
+      if (ventaResult.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Venta no encontrada" });
+      }
+
+      const venta = ventaResult.rows[0];
+
+      if (venta.estado === "anulada") {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: "No se puede corregir una venta anulada",
+        });
+      }
+
+      if (venta.tipo_comprobante === "Credito") {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: "Las ventas a credito se corrigen desde cuentas por cobrar",
+        });
+      }
+
+      const totalPorCubrir = redondearMoneda(
+        Number(venta.total || 0) - Number(venta.saldo_favor_usado || 0)
+      );
+      const totalPagos = redondearMoneda(efectivo + tarjeta + transferencia);
+
+      if (Math.abs(totalPagos - totalPorCubrir) > 0.01) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: `La distribucion debe sumar Q${totalPorCubrir.toFixed(2)}`,
+        });
+      }
+
+      const valoresAnteriores = {
+        metodo_pago: venta.metodo_pago || "",
+        efectivo: redondearMoneda(
+          Number(venta.efectivo_recibido || 0) - Number(venta.cambio || 0)
+        ),
+        tarjeta: redondearMoneda(venta.tarjeta_monto),
+        tarjeta_autorizacion: venta.tarjeta_autorizacion || "",
+        transferencia: redondearMoneda(venta.transferencia_monto),
+        transferencia_codigo: venta.transferencia_codigo || "",
+      };
+      const formas = [];
+      if (efectivo > 0) formas.push("Efectivo");
+      if (tarjeta > 0) formas.push("Tarjeta");
+      if (transferencia > 0) formas.push("Transferencia");
+      const metodoPago = formas.length > 1 ? "Mixto" : formas[0] || "";
+      const valoresNuevos = {
+        metodo_pago: metodoPago,
+        efectivo,
+        tarjeta,
+        tarjeta_autorizacion: tarjetaAutorizacion,
+        transferencia,
+        transferencia_codigo: transferenciaCodigo,
+      };
+
+      const efectivoAnterior = Number(valoresAnteriores.efectivo || 0);
+      const diferenciaEfectivo = redondearMoneda(efectivo - efectivoAnterior);
+
+      if (Math.abs(diferenciaEfectivo) > 0.001) {
+        await registrarPartidaContable(client, {
+          empresaId,
+          usuarioId: req.user.id,
+          descripcion: `Reclasificacion de pago venta #${ventaId}`,
+          origen: "correccion_pago_venta",
+          referenciaId: ventaId,
+          referenciaCodigo: `COR-PAGO-${ventaId}`,
+          lineas:
+            diferenciaEfectivo > 0
+              ? [
+                  { cuenta: "101", debe: diferenciaEfectivo },
+                  { cuenta: "102", haber: diferenciaEfectivo },
+                ]
+              : [
+                  { cuenta: "102", debe: Math.abs(diferenciaEfectivo) },
+                  { cuenta: "101", haber: Math.abs(diferenciaEfectivo) },
+                ],
+        });
+      }
+
+      const corregida = await client.query(
+        `
+        UPDATE ventas
+        SET
+          metodo_pago = $3,
+          efectivo_recibido = $4,
+          cambio = 0,
+          tarjeta_monto = $5,
+          tarjeta_autorizacion = $6,
+          transferencia_monto = $7,
+          transferencia_codigo = $8
+        WHERE id = $1
+        AND empresa_id = $2
+        RETURNING *
+        `,
+        [
+          ventaId,
+          empresaId,
+          metodoPago,
+          efectivo,
+          tarjeta,
+          tarjetaAutorizacion,
+          transferencia,
+          transferenciaCodigo,
+        ]
+      );
+
+      await client.query(
+        `
+        INSERT INTO ventas_correcciones
+        (
+          venta_id,
+          empresa_id,
+          tipo,
+          valores_anteriores,
+          valores_nuevos,
+          motivo,
+          usuario_id,
+          autorizador_id
+        )
+        VALUES ($1,$2,'forma_pago',$3,$4,$5,$6,$7)
+        `,
+        [
+          ventaId,
+          empresaId,
+          valoresAnteriores,
+          valoresNuevos,
+          motivo,
+          req.user.id,
+          autorizador.id,
+        ]
+      );
+
+      await client.query("COMMIT");
+      res.json({
+        mensaje: "Forma de pago corregida correctamente",
+        venta: corregida.rows[0],
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error(error);
+      res.status(500).json({
+        error: error.message || "Error corrigiendo forma de pago",
+      });
+    } finally {
+      client.release();
+    }
+  }
+);
+
+app.post(
+  "/ventas/:id/anular-reemplazar",
+  verificarToken,
+  permitirRoles("admin"),
+  async (req, res) => {
+    const client = await db.connect();
+
+    try {
+      const empresaId = obtenerEmpresaId(req);
+      const ventaId = Number(req.params.id);
+      const motivo = String(req.body.motivo || "").trim();
+      const passwordAdmin = String(req.body.password_admin || "").trim();
+      const totalNuevo = redondearMoneda(req.body.total_nuevo);
+      const efectivo = redondearMoneda(req.body.efectivo);
+      const tarjeta = redondearMoneda(req.body.tarjeta);
+      const transferencia = redondearMoneda(req.body.transferencia);
+      const tarjetaAutorizacion = String(req.body.tarjeta_autorizacion || "").trim();
+      const transferenciaCodigo = String(req.body.transferencia_codigo || "").trim();
+
+      if (!ventaId || totalNuevo <= 0) {
+        return res.status(400).json({ error: "Venta o total corregido invalido" });
+      }
+
+      if (!motivo) {
+        return res.status(400).json({ error: "Ingrese el motivo del reemplazo" });
+      }
+
+      if ([efectivo, tarjeta, transferencia].some((monto) => monto < 0)) {
+        return res.status(400).json({ error: "Los montos no pueden ser negativos" });
+      }
+
+      if (tarjeta > 0 && !tarjetaAutorizacion) {
+        return res.status(400).json({ error: "Ingrese la autorizacion de tarjeta" });
+      }
+
+      if (transferencia > 0 && !transferenciaCodigo) {
+        return res.status(400).json({ error: "Ingrese el codigo de transferencia" });
+      }
+
+      const autorizador = await validarPasswordAdminEmpresa(empresaId, passwordAdmin);
+      await client.query("BEGIN");
+
+      const ventaResult = await client.query(
+        `SELECT * FROM ventas WHERE id = $1 AND empresa_id = $2 FOR UPDATE`,
+        [ventaId, empresaId]
+      );
+
+      if (ventaResult.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Venta no encontrada" });
+      }
+
+      const venta = ventaResult.rows[0];
+
+      if (venta.estado === "anulada" || venta.venta_reemplazo_id) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "La venta ya fue anulada o reemplazada" });
+      }
+
+      if (venta.tipo_comprobante === "Credito") {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: "Las ventas a credito deben corregirse desde cuentas por cobrar",
+        });
+      }
+
+      const detalles = await client.query(
+        `SELECT * FROM detalle_ventas WHERE venta_id = $1 ORDER BY id`,
+        [ventaId]
+      );
+
+      if (detalles.rows.some((item) => /Cobro credito venta #/i.test(String(item.descripcion || "")))) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: "Una venta que cobra creditos debe corregirse desde cuentas por cobrar",
+        });
+      }
+
+      const subtotal = redondearMoneda(venta.subtotal);
+      if (totalNuevo > subtotal + 0.01) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: `El total corregido no puede superar el subtotal Q${subtotal.toFixed(2)}`,
+        });
+      }
+
+      const saldoFavor = redondearMoneda(venta.saldo_favor_usado);
+      const totalPorCubrir = redondearMoneda(totalNuevo - saldoFavor);
+      const totalPagos = redondearMoneda(efectivo + tarjeta + transferencia);
+
+      if (totalPorCubrir < 0 || Math.abs(totalPagos - totalPorCubrir) > 0.01) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: `Los pagos deben sumar Q${Math.max(totalPorCubrir, 0).toFixed(2)}`,
+        });
+      }
+
+      const formas = [];
+      if (efectivo > 0) formas.push("Efectivo");
+      if (tarjeta > 0) formas.push("Tarjeta");
+      if (transferencia > 0) formas.push("Transferencia");
+      const metodoPago = formas.length > 1 ? "Mixto" : formas[0] || "";
+      const descuentoNuevo = redondearMoneda(subtotal - totalNuevo);
+
+      const reemplazoResult = await client.query(
+        `
+        INSERT INTO ventas
+        (
+          subtotal, descuento_tipo, descuento_valor, descuento_monto, total,
+          metodo_pago, efectivo_recibido, cambio, tarjeta_autorizacion,
+          tarjeta_monto, transferencia_monto, transferencia_codigo,
+          saldo_favor_usado, tipo_comprobante, recibo_codigo,
+          cliente_nit, cliente_nombre, cliente_direccion, cliente_id,
+          es_credito, estado_cuenta, caja_turno_id, clave_operacion,
+          usuario_id, empresa_id, venta_origen_id
+        )
+        SELECT
+          subtotal, 'monto', $3, $3, $4,
+          $5, $6, 0, $7, $8, $9, $10,
+          saldo_favor_usado, tipo_comprobante, '',
+          cliente_nit, cliente_nombre, cliente_direccion, cliente_id,
+          false, 'pagada', caja_turno_id, NULL,
+          $11, empresa_id, id
+        FROM ventas
+        WHERE id = $1 AND empresa_id = $2
+        RETURNING *
+        `,
+        [
+          ventaId,
+          empresaId,
+          descuentoNuevo,
+          totalNuevo,
+          metodoPago,
+          efectivo,
+          tarjetaAutorizacion,
+          tarjeta,
+          transferencia,
+          transferenciaCodigo,
+          req.user.id,
+        ]
+      );
+      const reemplazo = reemplazoResult.rows[0];
+
+      await client.query(
+        `
+        INSERT INTO detalle_ventas
+        (venta_id, producto_id, cantidad, precio, descripcion, complementos, observacion)
+        SELECT $2, producto_id, cantidad, precio, descripcion, complementos, observacion
+        FROM detalle_ventas
+        WHERE venta_id = $1
+        `,
+        [ventaId, reemplazo.id]
+      );
+
+      await client.query(
+        `
+        UPDATE ventas
+        SET estado = 'anulada', fecha_anulacion = NOW(),
+            usuario_anulacion_id = $3, autorizador_anulacion_id = $4,
+            motivo_anulacion = $5, venta_reemplazo_id = $6
+        WHERE id = $1 AND empresa_id = $2
+        `,
+        [ventaId, empresaId, req.user.id, autorizador.id, motivo, reemplazo.id]
+      );
+
+      await client.query(
+        `UPDATE comandas SET venta_id = $2 WHERE venta_id = $1 AND empresa_id = $3`,
+        [ventaId, reemplazo.id, empresaId]
+      );
+
+      const efectivoAnterior = redondearMoneda(
+        Number(venta.efectivo_recibido || 0) - Number(venta.cambio || 0)
+      );
+      const bancoAnterior = redondearMoneda(
+        Number(venta.tarjeta_monto || 0) + Number(venta.transferencia_monto || 0)
+      );
+      const bancoNuevo = redondearMoneda(tarjeta + transferencia);
+      const factura = venta.tipo_comprobante === "Factura";
+      const ventaNetaAnterior = factura ? redondearMoneda(Number(venta.total) / 1.12) : redondearMoneda(venta.total);
+      const ivaAnterior = factura ? redondearMoneda(Number(venta.total) - ventaNetaAnterior) : 0;
+      const ventaNetaNueva = factura ? redondearMoneda(totalNuevo / 1.12) : totalNuevo;
+      const ivaNuevo = factura ? redondearMoneda(totalNuevo - ventaNetaNueva) : 0;
+
+      await registrarPartidaContable(client, {
+        empresaId,
+        usuarioId: req.user.id,
+        descripcion: `Anulacion y reemplazo venta #${ventaId} por #${reemplazo.id}`,
+        origen: "reemplazo_venta",
+        referenciaId: reemplazo.id,
+        referenciaCodigo: `REEMP-${ventaId}-${reemplazo.id}`,
+        lineas: [
+          { cuenta: "401", debe: ventaNetaAnterior },
+          { cuenta: "202", debe: ivaAnterior },
+          { cuenta: "101", haber: efectivoAnterior },
+          { cuenta: "102", haber: bancoAnterior },
+          { cuenta: "204", haber: saldoFavor },
+          { cuenta: "101", debe: efectivo },
+          { cuenta: "102", debe: bancoNuevo },
+          { cuenta: "204", debe: saldoFavor },
+          { cuenta: "401", haber: ventaNetaNueva },
+          { cuenta: "202", haber: ivaNuevo },
+        ],
+      });
+
+      await client.query(
+        `
+        INSERT INTO ventas_correcciones
+        (venta_id, empresa_id, tipo, valores_anteriores, valores_nuevos,
+         motivo, usuario_id, autorizador_id, venta_reemplazo_id)
+        VALUES ($1,$2,'anulacion_reemplazo',$3,$4,$5,$6,$7,$8)
+        `,
+        [
+          ventaId,
+          empresaId,
+          venta,
+          reemplazo,
+          motivo,
+          req.user.id,
+          autorizador.id,
+          reemplazo.id,
+        ]
+      );
+
+      await client.query("COMMIT");
+      res.json({
+        mensaje: `Venta #${ventaId} anulada y reemplazada por #${reemplazo.id}`,
+        venta_original_id: ventaId,
+        venta_reemplazo: reemplazo,
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error(error);
+      res.status(500).json({ error: error.message || "Error reemplazando venta" });
+    } finally {
+      client.release();
+    }
+  }
+);
+
+app.patch(
   "/ventas/:id/anular",
   verificarToken,
   permitirRoles("admin", "cajero"),
@@ -8011,6 +8527,32 @@ app.patch(
       RETURNING *
       `,
       [ventaId, empresaId, req.user.id, autorizador.id, motivo]
+    );
+
+    await client.query(
+      `
+      INSERT INTO ventas_correcciones
+      (
+        venta_id,
+        empresa_id,
+        tipo,
+        valores_anteriores,
+        valores_nuevos,
+        motivo,
+        usuario_id,
+        autorizador_id
+      )
+      VALUES ($1,$2,'anulacion_definitiva',$3,$4,$5,$6,$7)
+      `,
+      [
+        ventaId,
+        empresaId,
+        venta,
+        { estado: "anulada" },
+        motivo,
+        req.user.id,
+        autorizador.id,
+      ]
     );
 
     await client.query("COMMIT");
