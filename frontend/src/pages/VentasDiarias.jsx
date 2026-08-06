@@ -6,8 +6,10 @@ import {
   FileClock,
   PencilLine,
   ReceiptText,
+  Search,
   ShieldCheck,
   Trash2,
+  X,
 } from "lucide-react";
 import "./VentasDiarias.css";
 import { API } from "../config";
@@ -30,6 +32,13 @@ const formatearHoraGuatemala = (fecha) =>
     timeZone: "America/Guatemala",
   });
 
+const normalizarBusqueda = (valor) =>
+  String(valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
 export default function VentasDiarias({ user }) {
   const hoy = obtenerFechaGuatemala();
   const [fecha, setFecha] = useState(hoy);
@@ -39,6 +48,7 @@ export default function VentasDiarias({ user }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [filtroVentas, setFiltroVentas] = useState("");
   const [ventaAnular, setVentaAnular] = useState(null);
   const [anulacion, setAnulacion] = useState({
     motivo: "",
@@ -135,6 +145,45 @@ export default function VentasDiarias({ user }) {
     (venta.detalle || [])
       .map((item) => `${item.cantidad} x ${item.nombre}`)
       .join(", ");
+
+  const ventasFiltradas = useMemo(() => {
+    const termino = normalizarBusqueda(filtroVentas);
+
+    if (!termino) return ventas;
+
+    return ventas.filter((venta) => {
+      const esCredito = venta.tipo_comprobante === "Credito";
+      const efectivo = !esCredito
+        ? Number(venta.efectivo_recibido || 0) - Number(venta.cambio || 0)
+        : 0;
+      const formasPago = [
+        efectivo > 0 ? "efectivo" : "",
+        Number(venta.tarjeta_monto || 0) > 0 ? "tarjeta" : "",
+        Number(venta.transferencia_monto || 0) > 0 ? "transferencia" : "",
+        esCredito ? "credito" : "",
+      ].filter(Boolean);
+      const contenido = [
+        venta.id,
+        venta.tipo_comprobante,
+        `${venta.tipo_comprobante || ""} ${venta.id || ""}`,
+        venta.cliente_nit,
+        venta.cliente_nombre,
+        venta.cliente_direccion,
+        productosTexto(venta),
+        venta.usuario_nombre,
+        venta.metodo_pago,
+        formasPago.join(" "),
+        venta.tarjeta_autorizacion,
+        venta.transferencia_codigo,
+        venta.estado,
+        venta.motivo_anulacion,
+        formatearHoraGuatemala(venta.fecha),
+        Number(venta.total || 0).toFixed(2),
+      ];
+
+      return normalizarBusqueda(contenido.join(" ")).includes(termino);
+    });
+  }, [ventas, filtroVentas]);
 
   const descargarCSV = (nombreArchivo, filas) => {
     if (filas.length === 0) return;
@@ -466,10 +515,42 @@ export default function VentasDiarias({ user }) {
           </div>
         </div>
 
+        <div className="ventas-admin-busqueda">
+          <div className="ventas-admin-busqueda-campo">
+            <Search size={19} aria-hidden="true" />
+            <input
+              type="search"
+              value={filtroVentas}
+              onChange={(e) => setFiltroVentas(e.target.value)}
+              placeholder="Buscar factura, NIT, cliente, producto, cajero, pago o autorizacion"
+              aria-label="Filtrar detalle de ventas"
+            />
+            {filtroVentas && (
+              <button
+                type="button"
+                onClick={() => setFiltroVentas("")}
+                aria-label="Limpiar filtro"
+                title="Limpiar filtro"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+          <span className="ventas-admin-busqueda-resultados">
+            {filtroVentas
+              ? `${ventasFiltradas.length} de ${ventas.length} ventas`
+              : `${ventas.length} ventas del dia`}
+          </span>
+        </div>
+
         {cargando ? (
           <div className="ventas-admin-vacio">Cargando ventas...</div>
         ) : ventas.length === 0 ? (
           <div className="ventas-admin-vacio">No hay ventas registradas para esta fecha.</div>
+        ) : ventasFiltradas.length === 0 ? (
+          <div className="ventas-admin-vacio">
+            No se encontraron ventas que coincidan con el filtro.
+          </div>
         ) : (
           <div className="ventas-admin-tabla-wrap">
             <table className="ventas-admin-tabla">
@@ -490,7 +571,7 @@ export default function VentasDiarias({ user }) {
                 </tr>
               </thead>
               <tbody>
-                {ventas.map((venta) => {
+                {ventasFiltradas.map((venta) => {
                   const esCredito = venta.tipo_comprobante === "Credito";
                   const efectivo =
                     !esCredito
