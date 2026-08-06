@@ -1,11 +1,15 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   Banknote,
+  ChevronDown,
   CheckCircle2,
   CreditCard,
   FileClock,
+  MoreVertical,
   PencilLine,
+  Plus,
   ReceiptText,
+  Save,
   Search,
   ShieldCheck,
   Trash2,
@@ -59,6 +63,12 @@ export default function VentasDiarias({ user }) {
   const [corrigiendo, setCorrigiendo] = useState(false);
   const [ventaReemplazar, setVentaReemplazar] = useState(null);
   const [reemplazando, setReemplazando] = useState(false);
+  const [menuGeneralAbierto, setMenuGeneralAbierto] = useState(false);
+  const [menuVentaId, setMenuVentaId] = useState(null);
+  const [ventaOmitidaAbierta, setVentaOmitidaAbierta] = useState(false);
+  const [guardandoOmitida, setGuardandoOmitida] = useState(false);
+  const [catalogoOmitida, setCatalogoOmitida] = useState({ productos: [], usuarios: [] });
+  const [ventaOmitida, setVentaOmitida] = useState(null);
   const [correccion, setCorreccion] = useState({
     efectivo: "0.00",
     tarjeta: "0.00",
@@ -79,13 +89,34 @@ export default function VentasDiarias({ user }) {
     password_admin: "",
   });
 
-  const cargarVentas = async () => {
+  const crearFormularioOmitida = () => {
+    const partes = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Guatemala",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    }).formatToParts(new Date()).reduce((acc, parte) => ({ ...acc, [parte.type]: parte.value }), {});
+    return {
+      fecha: `${partes.year}-${partes.month}-${partes.day}T${partes.hour}:${partes.minute}`,
+      usuario_id: String(user.id || ""),
+      tipo_comprobante: "Recibo",
+      cliente_nit: "CF",
+      cliente_nombre: "CONSUMIDOR FINAL",
+      cliente_direccion: "CIUDAD",
+      efectivo: "0.00", tarjeta: "0.00", transferencia: "0.00",
+      tarjeta_autorizacion: "", transferencia_codigo: "",
+      motivo: "", password_admin: "",
+      productos: [{ producto_id: "", cantidad: 1, precio: "0.00" }],
+      clave_operacion: `omitida-${user.empresa_id}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    };
+  };
+
+  const cargarVentas = async (fechaConsulta = fecha) => {
     setCargando(true);
     setError("");
 
     try {
       const res = await fetch(
-        `${API}/administracion/ventas-diarias?empresa_id=${user.empresa_id}&fecha=${fecha}`,
+        `${API}/administracion/ventas-diarias?empresa_id=${user.empresa_id}&fecha=${fechaConsulta}`,
         {
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem("token")}`,
@@ -422,6 +453,81 @@ export default function VentasDiarias({ user }) {
     }
   };
 
+  const abrirVentaOmitida = async () => {
+    setMenuGeneralAbierto(false);
+    setError("");
+    setVentaOmitida(crearFormularioOmitida());
+    setVentaOmitidaAbierta(true);
+
+    try {
+      const res = await fetch(
+        `${API}/administracion/ventas-omitidas/catalogo?empresa_id=${user.empresa_id}`,
+        { headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo cargar el catalogo.");
+      setCatalogoOmitida({
+        productos: Array.isArray(data.productos) ? data.productos : [],
+        usuarios: Array.isArray(data.usuarios) ? data.usuarios : [],
+      });
+    } catch (err) {
+      setVentaOmitidaAbierta(false);
+      setError(err.message || "No se pudo cargar el catalogo.");
+    }
+  };
+
+  const cambiarLineaOmitida = (indice, campo, valor) => {
+    setVentaOmitida((prev) => {
+      const productos = prev.productos.map((linea, posicion) => {
+        if (posicion !== indice) return linea;
+        if (campo !== "producto_id") return { ...linea, [campo]: valor };
+        const producto = catalogoOmitida.productos.find((item) => Number(item.id) === Number(valor));
+        return { ...linea, producto_id: valor, precio: Number(producto?.precio || 0).toFixed(2) };
+      });
+      return { ...prev, productos };
+    });
+  };
+
+  const totalVentaOmitida = (ventaOmitida?.productos || []).reduce(
+    (suma, linea) => suma + Number(linea.precio || 0) * Number(linea.cantidad || 0),
+    0
+  );
+
+  const guardarVentaOmitida = async (e) => {
+    e.preventDefault();
+    if (!ventaOmitida) return;
+    setGuardandoOmitida(true);
+    setError("");
+
+    try {
+      const res = await fetch(`${API}/administracion/ventas-omitidas`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ ...ventaOmitida, empresa_id: user.empresa_id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo registrar la venta omitida.");
+
+      setVentaOmitidaAbierta(false);
+      setVentaOmitida(null);
+      const fechaRegistrada = String(data.venta?.fecha || "").slice(0, 10) || fecha;
+      setFecha(fechaRegistrada);
+      setMensaje(
+        `${data.mensaje || "Venta omitida registrada correctamente."}${
+          data.advertencia_caja ? ` ${data.advertencia_caja}.` : ""
+        }`
+      );
+      await cargarVentas(fechaRegistrada);
+    } catch (err) {
+      setError(err.message || "No se pudo registrar la venta omitida.");
+    } finally {
+      setGuardandoOmitida(false);
+    }
+  };
+
   return (
     <main className="ventas-admin-page">
       <header className="ventas-admin-header">
@@ -498,6 +604,24 @@ export default function VentasDiarias({ user }) {
           </div>
 
           <div className="ventas-admin-export">
+            <div className="ventas-admin-menu-general">
+              <button
+                type="button"
+                className="ventas-admin-btn-acciones"
+                onClick={() => setMenuGeneralAbierto((abierto) => !abierto)}
+                aria-expanded={menuGeneralAbierto}
+              >
+                Acciones <ChevronDown size={17} />
+              </button>
+              {menuGeneralAbierto && (
+                <div className="ventas-admin-menu-panel">
+                  <button type="button" onClick={abrirVentaOmitida}>
+                    <Plus size={17} />
+                    <span><strong>Registrar venta omitida</strong><small>Ingreso posterior con auditoria</small></span>
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={exportarResumen}
@@ -596,6 +720,9 @@ export default function VentasDiarias({ user }) {
                               CORRIGE #{venta.venta_origen_id}
                             </span>
                           )}
+                          {venta.origen_registro === "venta_omitida" && (
+                            <span className="venta-estado-omitida">REGISTRADA POSTERIORMENTE</span>
+                          )}
                         </td>
                         <td>{venta.cliente_nit || "CF"}</td>
                         <td>{venta.cliente_nombre || "CONSUMIDOR FINAL"}</td>
@@ -607,24 +734,34 @@ export default function VentasDiarias({ user }) {
                         <td>Q{Number(venta.total || 0).toFixed(2)}</td>
                         <td>{venta.usuario_nombre || "-"}</td>
                         <td className="ventas-admin-acciones">
-                          <div className="ventas-admin-acciones-stack">
+                          <div className="ventas-admin-menu-fila">
                             <button
                               type="button"
-                              className="ventas-admin-btn-detalle"
-                              onClick={() =>
-                                setVentaAbierta(
-                                  ventaAbierta === venta.id ? null : venta.id
-                                )
-                              }
+                              className="ventas-admin-menu-trigger"
+                              onClick={() => setMenuVentaId(menuVentaId === venta.id ? null : venta.id)}
+                              aria-label={`Acciones de venta ${venta.id}`}
+                              aria-expanded={menuVentaId === venta.id}
                             >
-                              {ventaAbierta === venta.id ? "Ocultar" : "Detalle"}
+                              <MoreVertical size={18} /> Acciones
                             </button>
-                            {venta.estado !== "anulada" && (
-                              <>
+                            {menuVentaId === venta.id && (
+                              <div className="ventas-admin-menu-panel ventas-admin-menu-panel-fila">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setVentaAbierta(ventaAbierta === venta.id ? null : venta.id);
+                                    setMenuVentaId(null);
+                                  }}
+                                >
+                                  <Search size={16} />
+                                  {ventaAbierta === venta.id ? "Ocultar detalle" : "Ver detalle"}
+                                </button>
+                                {venta.estado !== "anulada" && (
+                                  <>
                                 <button
                                   type="button"
                                   className="ventas-admin-corregir"
-                                  onClick={() => abrirCorreccionPago(venta)}
+                                  onClick={() => { abrirCorreccionPago(venta); setMenuVentaId(null); }}
                                 >
                                   <PencilLine size={15} />
                                   Corregir pago
@@ -632,7 +769,7 @@ export default function VentasDiarias({ user }) {
                                 <button
                                   type="button"
                                   className="ventas-admin-reemplazar"
-                                  onClick={() => abrirReemplazo(venta)}
+                                  onClick={() => { abrirReemplazo(venta); setMenuVentaId(null); }}
                                 >
                                   <ReceiptText size={15} />
                                   Anular y reemplazar
@@ -641,6 +778,7 @@ export default function VentasDiarias({ user }) {
                                   type="button"
                                   className="ventas-admin-anular"
                                   onClick={() => {
+                                    setMenuVentaId(null);
                                     setVentaAnular(venta);
                                     setAnulacion({
                                       motivo: "",
@@ -651,7 +789,9 @@ export default function VentasDiarias({ user }) {
                                   <Trash2 size={15} />
                                   Anular definitivamente
                                 </button>
-                              </>
+                                  </>
+                                )}
+                              </div>
                             )}
                           </div>
                         </td>
@@ -699,7 +839,13 @@ export default function VentasDiarias({ user }) {
                                   <article key={item.id}>
                                     <CheckCircle2 size={17} />
                                     <div>
-                                      <strong>{item.tipo === "forma_pago" ? "Forma de pago corregida" : "Venta anulada"}</strong>
+                                      <strong>{
+                                        item.tipo === "forma_pago"
+                                          ? "Forma de pago corregida"
+                                          : item.tipo === "venta_omitida"
+                                          ? "Venta omitida registrada"
+                                          : "Venta anulada"
+                                      }</strong>
                                       <span>{item.motivo}</span>
                                       <small>
                                         {formatearFechaGuatemala(item.fecha)} · {item.autorizador || item.usuario || "Administrador"}
@@ -720,6 +866,69 @@ export default function VentasDiarias({ user }) {
           </div>
         )}
       </section>
+
+      {ventaOmitidaAbierta && ventaOmitida && (
+        <div className="ventas-admin-modal-overlay">
+          <form className="ventas-admin-modal ventas-admin-modal-omitida" onSubmit={guardarVentaOmitida}>
+            <header className="ventas-admin-modal-head">
+              <div className="ventas-admin-modal-icon omitida"><FileClock size={23} /></div>
+              <div>
+                <span>REGISTRO ADMINISTRATIVO</span>
+                <h2>Registrar venta omitida</h2>
+                <p>La venta conservara su fecha real y quedara identificada en auditoria.</p>
+              </div>
+              <button type="button" className="ventas-admin-modal-cerrar" onClick={() => setVentaOmitidaAbierta(false)} aria-label="Cerrar">
+                <X size={20} />
+              </button>
+            </header>
+
+            <div className="ventas-admin-omitida-grid tres-columnas">
+              <label><span>Fecha y hora de la venta</span><input type="datetime-local" required value={ventaOmitida.fecha} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, fecha: e.target.value }))} /></label>
+              <label><span>Cajero responsable</span><select required value={ventaOmitida.usuario_id} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, usuario_id: e.target.value }))}><option value="">Seleccionar cajero</option>{catalogoOmitida.usuarios.map((item) => <option key={item.id} value={item.id}>{item.nombre} · {item.rol}</option>)}</select></label>
+              <label><span>Documento</span><select value={ventaOmitida.tipo_comprobante} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, tipo_comprobante: e.target.value }))}><option>Recibo</option><option>Factura</option></select></label>
+            </div>
+
+            <section className="ventas-admin-omitida-seccion">
+              <div className="ventas-admin-omitida-titulo"><div><strong>Productos</strong><small>El total se calcula con el detalle ingresado.</small></div><button type="button" onClick={() => setVentaOmitida((prev) => ({ ...prev, productos: [...prev.productos, { producto_id: "", cantidad: 1, precio: "0.00" }] }))}><Plus size={16} /> Agregar producto</button></div>
+              <div className="ventas-admin-omitida-lineas">
+                {ventaOmitida.productos.map((linea, indice) => (
+                  <div className="ventas-admin-omitida-linea" key={indice}>
+                    <label><span>Producto</span><select required value={linea.producto_id} onChange={(e) => cambiarLineaOmitida(indice, "producto_id", e.target.value)}><option value="">Seleccionar producto</option>{catalogoOmitida.productos.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label>
+                    <label><span>Cantidad</span><input type="number" min="1" step="1" required value={linea.cantidad} onChange={(e) => cambiarLineaOmitida(indice, "cantidad", e.target.value)} /></label>
+                    <label><span>Precio unitario</span><div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" required value={linea.precio} onChange={(e) => cambiarLineaOmitida(indice, "precio", e.target.value)} /></div></label>
+                    <button type="button" className="ventas-admin-quitar-linea" disabled={ventaOmitida.productos.length === 1} onClick={() => setVentaOmitida((prev) => ({ ...prev, productos: prev.productos.filter((_, posicion) => posicion !== indice) }))} aria-label="Quitar producto"><Trash2 size={17} /></button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <div className="ventas-admin-omitida-grid tres-columnas cliente">
+              <label><span>NIT</span><input value={ventaOmitida.cliente_nit} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, cliente_nit: e.target.value }))} /></label>
+              <label><span>Nombre del cliente</span><input value={ventaOmitida.cliente_nombre} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, cliente_nombre: e.target.value }))} /></label>
+              <label><span>Direccion</span><input value={ventaOmitida.cliente_direccion} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, cliente_direccion: e.target.value }))} /></label>
+            </div>
+
+            <section className="ventas-admin-omitida-pago">
+              <div className="ventas-admin-omitida-total"><span>Total calculado</span><strong>Q{totalVentaOmitida.toFixed(2)}</strong></div>
+              <div className="ventas-admin-omitida-grid tres-columnas">
+                <label><span>Efectivo</span><div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={ventaOmitida.efectivo} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, efectivo: e.target.value }))} /></div></label>
+                <label><span>Tarjeta</span><div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={ventaOmitida.tarjeta} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, tarjeta: e.target.value }))} /></div></label>
+                <label><span>Transferencia</span><div className="ventas-admin-money-input"><b>Q</b><input type="number" min="0" step="0.01" value={ventaOmitida.transferencia} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, transferencia: e.target.value }))} /></div></label>
+                {Number(ventaOmitida.tarjeta || 0) > 0 && <label><span>Autorizacion de tarjeta</span><input required value={ventaOmitida.tarjeta_autorizacion} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, tarjeta_autorizacion: e.target.value }))} /></label>}
+                {Number(ventaOmitida.transferencia || 0) > 0 && <label><span>Codigo de transferencia</span><input required value={ventaOmitida.transferencia_codigo} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, transferencia_codigo: e.target.value }))} /></label>}
+              </div>
+            </section>
+
+            <div className="ventas-admin-omitida-grid dos-columnas">
+              <label><span>Motivo obligatorio</span><textarea required value={ventaOmitida.motivo} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, motivo: e.target.value }))} placeholder="Ejemplo: venta realizada por el cajero y no ingresada durante la operacion." /></label>
+              <label><span>Clave de administrador</span><input type="password" required value={ventaOmitida.password_admin} onChange={(e) => setVentaOmitida((prev) => ({ ...prev, password_admin: e.target.value }))} autoComplete="current-password" /></label>
+            </div>
+
+            <div className="ventas-admin-seguridad advertencia"><ShieldCheck size={20} /><span>Este registro no reutiliza numeros anteriores. Una factura queda marcada como no certificada hasta integrar FEL/SAT.</span></div>
+            <div className="ventas-admin-modal-actions"><button type="button" onClick={() => setVentaOmitidaAbierta(false)}>Cancelar</button><button type="submit" className="primario" disabled={guardandoOmitida}><Save size={17} /> {guardandoOmitida ? "Registrando..." : "Registrar venta"}</button></div>
+          </form>
+        </div>
+      )}
 
       {ventaAnular && (
         <div className="ventas-admin-modal-overlay">

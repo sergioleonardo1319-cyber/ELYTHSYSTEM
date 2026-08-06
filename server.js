@@ -403,6 +403,26 @@ const inicializarCaja = async () => {
     `);
 
     await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS origen_registro VARCHAR(30) DEFAULT 'pos'
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS fecha_registro TIMESTAMP DEFAULT NOW()
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS motivo_registro TEXT
+    `);
+
+    await db.query(`
+      ALTER TABLE ventas
+      ADD COLUMN IF NOT EXISTS autorizador_registro_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
+    `);
+
+    await db.query(`
       CREATE TABLE IF NOT EXISTS ventas_correcciones (
         id SERIAL PRIMARY KEY,
         venta_id INTEGER NOT NULL REFERENCES ventas(id) ON DELETE CASCADE,
@@ -1671,6 +1691,7 @@ const registrarPartidaContable = async (
     origen,
     referenciaId,
     referenciaCodigo,
+    fecha,
     lineas,
   }
 ) => {
@@ -1704,9 +1725,10 @@ const registrarPartidaContable = async (
       referencia_id,
       referencia_codigo,
       usuario_id,
-      empresa_id
+      empresa_id,
+      fecha
     )
-    VALUES ($1,$2,$3,$4,$5,$6)
+    VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7::timestamp,NOW()))
     RETURNING *
     `,
     [
@@ -1716,6 +1738,7 @@ const registrarPartidaContable = async (
       referenciaCodigo || "",
       usuarioId,
       empresaId,
+      fecha || null,
     ]
   );
 
@@ -7343,6 +7366,252 @@ app.get(
       error: "Error obteniendo ventas diarias",
     });
   }
+  }
+);
+
+app.get(
+  "/administracion/ventas-omitidas/catalogo",
+  verificarToken,
+  permitirRoles("admin"),
+  async (req, res) => {
+    try {
+      const empresaId = obtenerEmpresaId(req);
+      const [productos, usuarios] = await Promise.all([
+        db.query(
+          `SELECT id, nombre, precio, existencia, controla_stock
+           FROM productos
+           WHERE empresa_id = $1
+             AND COALESCE(eliminado, false) = false
+           ORDER BY nombre`,
+          [empresaId]
+        ),
+        db.query(
+          `SELECT id, nombre, rol
+           FROM usuarios
+           WHERE empresa_id = $1
+             AND rol IN ('admin', 'cajero')
+           ORDER BY nombre`,
+          [empresaId]
+        ),
+      ]);
+
+      res.json({ productos: productos.rows, usuarios: usuarios.rows });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error cargando catalogo para venta omitida" });
+    }
+  }
+);
+
+app.post(
+  "/administracion/ventas-omitidas",
+  verificarToken,
+  permitirRoles("admin"),
+  async (req, res) => {
+    const client = await db.connect();
+
+    try {
+      const empresaId = obtenerEmpresaId(req);
+      const fechaVenta = String(req.body.fecha || "").trim();
+      const usuarioVentaId = Number(req.body.usuario_id);
+      const motivo = String(req.body.motivo || "").trim();
+      const passwordAdmin = String(req.body.password_admin || "");
+      const tipoComprobante = req.body.tipo_comprobante === "Recibo" ? "Recibo" : "Factura";
+      const nit = String(req.body.cliente_nit || "CF").trim().toUpperCase() || "CF";
+      const nombreCliente = String(req.body.cliente_nombre || "CONSUMIDOR FINAL").trim().toUpperCase();
+      const direccionCliente = String(req.body.cliente_direccion || "CIUDAD").trim().toUpperCase();
+      const efectivo = redondearMoneda(req.body.efectivo);
+      const tarjeta = redondearMoneda(req.body.tarjeta);
+      const transferencia = redondearMoneda(req.body.transferencia);
+      const autorizacionTarjeta = String(req.body.tarjeta_autorizacion || "").trim();
+      const codigoTransferencia = String(req.body.transferencia_codigo || "").trim();
+      const productosSolicitados = Array.isArray(req.body.productos) ? req.body.productos : [];
+      const claveOperacion = String(req.body.clave_operacion || "").trim();
+
+      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(fechaVenta)) {
+        return res.status(400).json({ error: "Ingrese fecha y hora validas" });
+      }
+      if (!usuarioVentaId) return res.status(400).json({ error: "Seleccione el cajero" });
+      if (!motivo) return res.status(400).json({ error: "Ingrese el motivo del registro" });
+      if (productosSolicitados.length === 0) {
+        return res.status(400).json({ error: "Agregue al menos un producto" });
+      }
+      if ([efectivo, tarjeta, transferencia].some((valor) => valor < 0)) {
+        return res.status(400).json({ error: "Los pagos no pueden ser negativos" });
+      }
+      if (tarjeta > 0 && !autorizacionTarjeta) {
+        return res.status(400).json({ error: "Ingrese la autorizacion de tarjeta" });
+      }
+      if (transferencia > 0 && !codigoTransferencia) {
+        return res.status(400).json({ error: "Ingrese el codigo de transferencia" });
+      }
+
+      const autorizador = await validarPasswordAdminEmpresa(empresaId, passwordAdmin);
+      await client.query("BEGIN");
+
+      const usuarioVenta = await client.query(
+        `SELECT id, nombre FROM usuarios
+         WHERE id = $1 AND empresa_id = $2 AND rol IN ('admin', 'cajero')`,
+        [usuarioVentaId, empresaId]
+      );
+      if (usuarioVenta.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Cajero no encontrado en esta empresa" });
+      }
+
+      if (claveOperacion) {
+        const existente = await client.query(
+          `SELECT id FROM ventas WHERE empresa_id = $1 AND clave_operacion = $2`,
+          [empresaId, claveOperacion]
+        );
+        if (existente.rows.length > 0) {
+          await client.query("ROLLBACK");
+          return res.status(409).json({ error: `La venta omitida ya fue registrada como #${existente.rows[0].id}` });
+        }
+      }
+
+      const lineas = [];
+      let total = 0;
+      for (const item of productosSolicitados) {
+        const productoId = Number(item.producto_id);
+        const cantidad = Number(item.cantidad);
+        const precioSolicitado = Number(item.precio);
+        if (!productoId || !Number.isInteger(cantidad) || cantidad <= 0 || !Number.isFinite(precioSolicitado) || precioSolicitado < 0) {
+          await client.query("ROLLBACK");
+          return res.status(400).json({ error: "Revise producto, cantidad y precio" });
+        }
+
+        const productoResult = await client.query(
+          `SELECT id, nombre, existencia, controla_stock
+           FROM productos
+           WHERE id = $1 AND empresa_id = $2 AND COALESCE(eliminado, false) = false
+           FOR UPDATE`,
+          [productoId, empresaId]
+        );
+        if (productoResult.rows.length === 0) {
+          await client.query("ROLLBACK");
+          return res.status(404).json({ error: "Uno de los productos ya no existe" });
+        }
+
+        const producto = productoResult.rows[0];
+        const controlaStock = producto.controla_stock !== false;
+        if (controlaStock && Number(producto.existencia || 0) < cantidad) {
+          await client.query("ROLLBACK");
+          return res.status(400).json({ error: `Stock insuficiente para ${producto.nombre}` });
+        }
+        const precio = redondearMoneda(precioSolicitado);
+        total = redondearMoneda(total + precio * cantidad);
+        lineas.push({ producto, cantidad, precio, controlaStock });
+      }
+
+      const totalPagos = redondearMoneda(efectivo + tarjeta + transferencia);
+      if (Math.abs(totalPagos - total) > 0.01) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: `Los pagos deben sumar Q${total.toFixed(2)}` });
+      }
+
+      const turnoResult = await client.query(
+        `SELECT id FROM cajas_turnos
+         WHERE empresa_id = $1 AND usuario_id = $2
+           AND fecha_apertura <= $3::timestamp
+           AND (fecha_cierre IS NULL OR fecha_cierre >= $3::timestamp)
+         ORDER BY fecha_apertura DESC LIMIT 1`,
+        [empresaId, usuarioVentaId, fechaVenta]
+      );
+      const formas = [];
+      if (efectivo > 0) formas.push("Efectivo");
+      if (tarjeta > 0) formas.push("Tarjeta");
+      if (transferencia > 0) formas.push("Transferencia");
+
+      const ventaResult = await client.query(
+        `INSERT INTO ventas (
+           subtotal, descuento_tipo, descuento_valor, descuento_monto, total,
+           metodo_pago, efectivo_recibido, cambio, tarjeta_autorizacion,
+           tarjeta_monto, transferencia_monto, transferencia_codigo,
+           saldo_favor_usado, tipo_comprobante, recibo_codigo,
+           cliente_nit, cliente_nombre, cliente_direccion,
+           es_credito, estado_cuenta, caja_turno_id, clave_operacion,
+           usuario_id, empresa_id, fecha, origen_registro, fecha_registro,
+           motivo_registro, autorizador_registro_id
+         ) VALUES (
+           $1,'monto',0,0,$1,$2,$3,0,$4,$5,$6,$7,
+           0,$8,'',$9,$10,$11,false,'pagada',$12,$13,$14,$15,
+           $16,'venta_omitida',NOW(),$17,$18
+         ) RETURNING *`,
+        [
+          total, formas.length > 1 ? "Mixto" : formas[0] || "", efectivo,
+          autorizacionTarjeta, tarjeta, transferencia, codigoTransferencia,
+          tipoComprobante, nit, nombreCliente || "CONSUMIDOR FINAL",
+          direccionCliente || "CIUDAD", turnoResult.rows[0]?.id || null,
+          claveOperacion || null, usuarioVentaId, empresaId, fechaVenta,
+          motivo, autorizador.id,
+        ]
+      );
+      const venta = ventaResult.rows[0];
+
+      for (const linea of lineas) {
+        await client.query(
+          `INSERT INTO detalle_ventas
+           (venta_id, producto_id, cantidad, precio, descripcion, complementos, observacion)
+           VALUES ($1,$2,$3,$4,$5,'[]'::jsonb,'')`,
+          [venta.id, linea.producto.id, linea.cantidad, linea.precio, linea.producto.nombre]
+        );
+        if (linea.controlaStock) {
+          await client.query(
+            `UPDATE productos SET existencia = existencia - $1
+             WHERE id = $2 AND empresa_id = $3`,
+            [linea.cantidad, linea.producto.id, empresaId]
+          );
+          await client.query(
+            `INSERT INTO movimientos_inventario
+             (producto_id, tipo, cantidad, motivo, usuario_id, empresa_id)
+             VALUES ($1,'salida',$2,$3,$4,$5)`,
+            [linea.producto.id, linea.cantidad, `Venta omitida #${venta.id}: ${motivo}`, req.user.id, empresaId]
+          );
+        }
+      }
+
+      const ventaNeta = tipoComprobante === "Factura" ? redondearMoneda(total / 1.12) : total;
+      const iva = tipoComprobante === "Factura" ? redondearMoneda(total - ventaNeta) : 0;
+      await registrarPartidaContable(client, {
+        empresaId,
+        usuarioId: req.user.id,
+        descripcion: `Venta omitida #${venta.id} registrada posteriormente`,
+        origen: "venta_omitida",
+        referenciaId: venta.id,
+        referenciaCodigo: `VENTA-OMITIDA-${venta.id}`,
+        fecha: fechaVenta,
+        lineas: [
+          { cuenta: "101", debe: efectivo },
+          { cuenta: "102", debe: redondearMoneda(tarjeta + transferencia) },
+          { cuenta: "401", haber: ventaNeta },
+          { cuenta: "202", haber: iva },
+        ],
+      });
+
+      await client.query(
+        `INSERT INTO ventas_correcciones
+         (venta_id, empresa_id, tipo, valores_anteriores, valores_nuevos,
+          motivo, usuario_id, autorizador_id)
+         VALUES ($1,$2,'venta_omitida','{}'::jsonb,$3,$4,$5,$6)`,
+        [venta.id, empresaId, { fecha: fechaVenta, total, cajero: usuarioVenta.rows[0].nombre }, motivo, req.user.id, autorizador.id]
+      );
+
+      await client.query("COMMIT");
+      res.json({
+        mensaje: `Venta omitida #${venta.id} registrada con auditoria`,
+        venta,
+        advertencia_caja: turnoResult.rows.length === 0
+          ? "No se encontro un turno de caja que cubra la fecha indicada"
+          : null,
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error(error);
+      res.status(error.status || 500).json({ error: error.message || "Error registrando venta omitida" });
+    } finally {
+      client.release();
+    }
   }
 );
 
