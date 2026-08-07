@@ -423,13 +423,15 @@
 .ventas-admin-tabla .ventas-admin-menu-panel-fila button.ventas-admin-anular { color: #b91c1c; }
 
 .ventas-admin-tabla button.ventas-admin-corregir {
-  background: #0f766e;
-  box-shadow: 0 8px 18px rgba(15, 118, 110, .16);
+  background: transparent;
+  box-shadow: none;
+  color: #0f172a;
 }
 
 .ventas-admin-tabla button.ventas-admin-reemplazar {
-  background: #1d4ed8;
-  box-shadow: 0 8px 18px rgba(29, 78, 216, .16);
+  background: transparent;
+  box-shadow: none;
+  color: #0f172a;
 }
 
 .ventas-admin-tabla .ventas-admin-btn-detalle {
@@ -438,8 +440,9 @@
 }
 
 .ventas-admin-tabla button.ventas-admin-anular {
-  background: #dc2626;
-  box-shadow: 0 8px 18px rgba(220, 38, 38, .14);
+  background: transparent;
+  box-shadow: none;
+  color: #b91c1c;
   margin-left: 0;
 }
 
