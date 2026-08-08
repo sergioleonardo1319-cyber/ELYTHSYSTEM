@@ -11,6 +11,7 @@ const app = express();
 const APP_ENV = process.env.APP_ENV || process.env.NODE_ENV || "development";
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET = process.env.JWT_SECRET || "mi_clave_super_secreta";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "24h";
 const PROJECT_ROOT = __dirname;
 const DB_TIMEZONE = process.env.DB_TIMEZONE || "America/Guatemala";
 const fechaNegocioFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -1817,8 +1818,11 @@ const verificarToken = (req, res, next) => {
 
     console.log("ERROR TOKEN:", error.message);
 
+    const tokenExpirado = error?.name === "TokenExpiredError";
+
     return res.status(401).json({
-      error: "Token inválido",
+      error: tokenExpirado ? "Sesion expirada" : "Token invalido",
+      codigo: tokenExpirado ? "TOKEN_EXPIRED" : "TOKEN_INVALID",
     });
   }
 };
@@ -1940,7 +1944,7 @@ app.post("/login", async (req, res) => {
     const token = jwt.sign(
       payload,
       JWT_SECRET,
-      { expiresIn: "8h" }
+      { expiresIn: JWT_EXPIRES_IN }
     );
 
     console.log("TOKEN GENERADO:", token);
@@ -7838,23 +7842,13 @@ app.get(
     const params = [empresaId];
     let filtroDepartamento = "";
     const filtroFechaDiaGuatemala = (paramFecha) => `
-      AND c.fecha >= (
-        ($${paramFecha}::date::timestamp AT TIME ZONE 'America/Guatemala')
-        AT TIME ZONE 'UTC'
-      )
-      AND c.fecha < (
-        (($${paramFecha}::date + INTERVAL '1 day')::timestamp AT TIME ZONE 'America/Guatemala')
-        AT TIME ZONE 'UTC'
-      )
+      AND c.fecha >= $${paramFecha}::date
+      AND c.fecha < ($${paramFecha}::date + INTERVAL '1 day')
     `;
     let filtroFecha = `
-      AND c.fecha >= (
-        (((NOW() AT TIME ZONE 'America/Guatemala')::date)::timestamp AT TIME ZONE 'America/Guatemala')
-        AT TIME ZONE 'UTC'
-      )
+      AND c.fecha >= (NOW() AT TIME ZONE 'America/Guatemala')::date
       AND c.fecha < (
-        ((((NOW() AT TIME ZONE 'America/Guatemala')::date + INTERVAL '1 day')::timestamp AT TIME ZONE 'America/Guatemala')
-        AT TIME ZONE 'UTC')
+        (NOW() AT TIME ZONE 'America/Guatemala')::date + INTERVAL '1 day'
       )
     `;
     let filtroEstado = "AND c.estado <> 'ENTREGADO'";

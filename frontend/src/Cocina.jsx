@@ -4,11 +4,17 @@ import { API } from "./config";
 const MINUTOS_OBJETIVO = 12;
 
 const fechaLocalHoy = () => {
-  const fecha = new Date();
-  const year = fecha.getFullYear();
-  const month = String(fecha.getMonth() + 1).padStart(2, "0");
-  const day = String(fecha.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Guatemala",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const valores = Object.fromEntries(
+    partes.map((parte) => [parte.type, parte.value])
+  );
+
+  return `${valores.year}-${valores.month}-${valores.day}`;
 };
 
 export default function Cocina({ user }) {
